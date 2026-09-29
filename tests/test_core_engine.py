@@ -55,6 +55,12 @@ def test_surge_model():
     inund_subsea = surge.calculate_inundation_depth(asset_elevation_m=-1.0, distance_to_coast_km=0.5, peak_coastal_surge_m=4.0)
     assert inund_subsea > 4.0
 
+    # Coastal polyline distance checks (Puri and Konark within 1-4km of Bay of Bengal)
+    d_puri = surge.calculate_distance_to_coastline_km(19.814, 85.827)
+    d_konark = surge.calculate_distance_to_coastline_km(19.890, 86.085)
+    assert 1.0 < d_puri < 4.0
+    assert 1.0 < d_konark < 4.0
+
 
 def test_flood_model():
     flood = PluvialFloodModel()

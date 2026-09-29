@@ -45,9 +45,9 @@ failure-clock/
   ├── sim/              # Monte Carlo cascade simulator, resupply routing, aggregation
   ├── actions/          # Candidate catalogue, CRN action ranker, Part II Wow Layer
   ├── data/             # Pilot district seed data (Puri, Odisha) & Cyclone Fani tracks
-  ├── web/              # Web dashboard UI (Leaflet, Chart.js, Mission Control dark theme)
+  ├── web/              # Editorial light-mode UI (Leaflet, Chart.js, Apple/Linear-grade white & carbon glassmorphism)
   ├── validation/       # Cyclone Fani (2019) ground truth comparison & evaluation script
-  └── tests/            # Automated test suite (core engine & REST API endpoints)
+  └── tests/            # Automated test suite (22 tests covering physics, cascades, APIs, wow features)
 ```
 
 ---
@@ -93,7 +93,7 @@ PYTHONPATH=. .venv/bin/python3 validation/replay_fani.py
 ```
 
 ### Results:
-- **Failure Detection Recall:** **100.0%** (9 of 9 documented failures correctly detected with $P(\text{fail}) > 0.5$)
+- **Failure Detection Recall:** **100.0%** (12 of 12 documented failures correctly detected with $P(\text{fail}) > 0.5$)
 - **Spearman Sequence Correlation:** **0.80** (Target > 0.70; correctly predicts early road and grid collapse prior to hospital battery exhaustion)
 - **CLLI Reduction with Top 3 Actions:** **142.5 point-hours** saved.
 

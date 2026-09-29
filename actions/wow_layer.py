@@ -43,8 +43,8 @@ class WowLayerEngine:
         board = []
         for act in actions:
             deadline = act.deadline_h
-            p10 = act.deadline_confidence_p10_h or (deadline - 1.5)
-            p90 = act.deadline_confidence_p90_h or (deadline + 1.5)
+            p10 = act.deadline_confidence_p10_h if act.deadline_confidence_p10_h is not None else (deadline - 1.5)
+            p90 = act.deadline_confidence_p90_h if act.deadline_confidence_p90_h is not None else (deadline + 1.5)
 
             remaining_h = round(deadline - current_time_h, 1)
 

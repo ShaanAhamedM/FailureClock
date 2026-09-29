@@ -1174,7 +1174,7 @@ async function inspectAsset(assetId) {
       const routeStr = data.resupply_routes?.length > 0
         ? `${data.resupply_routes[0].depot_id} via ${data.resupply_routes[0].road_path.join(" → ")}`
         : "Direct Access";
-      const fuelInfo = fuelHours ? ` · Autonomy: ${fuelHours}h (${tankCap || 800}L)` : "";
+      const fuelInfo = (fuelHours !== undefined && fuelHours !== null) ? ` · Autonomy: ${fuelHours}h (${tankCap || 800}L)` : "";
       document.getElementById("detailResupplyPath").textContent = `${routeStr}${fuelInfo}`;
     }
 

@@ -22,6 +22,44 @@ class CoastalSurgeModel:
         self.inland_decay_rate = inland_decay_rate_m_per_km
         self.coastline_lon = coastline_base_lon
 
+    @staticmethod
+    def calculate_distance_to_coastline_km(lat: float, lon: float) -> float:
+        """
+        Calculates distance from (lat, lon) to the nearest point on the
+        Puri District Bay of Bengal coastal polyline (Chilika mouth to Konark).
+        """
+        coast_pts = [
+            (19.72, 85.65),  # Chilika / Brahmagiri coast
+            (19.79, 85.82),  # Puri town beach
+            (19.83, 85.93),  # Balighai / Marine Drive
+            (19.87, 86.10),  # Konark / Chandrabhaga beach
+        ]
+        min_dist = float("inf")
+        r_earth = 6371.0
+        for i in range(len(coast_pts) - 1):
+            p1 = coast_pts[i]
+            p2 = coast_pts[i + 1]
+            dx = (p2[1] - p1[1]) * 105.0
+            dy = (p2[0] - p1[0]) * 111.0
+            seg_len_sq = dx * dx + dy * dy
+            ax = (lon - p1[1]) * 105.0
+            ay = (lat - p1[0]) * 111.0
+            t = max(0.0, min(1.0, (ax * dx + ay * dy) / max(seg_len_sq, 1e-6)))
+            proj_lon = p1[1] + t * (p2[1] - p1[1])
+            proj_lat = p1[0] + t * (p2[0] - p1[0])
+
+            d_lat = math.radians(lat - proj_lat)
+            d_lon = math.radians(lon - proj_lon)
+            a = (
+                math.sin(d_lat / 2.0) ** 2
+                + math.cos(math.radians(lat)) * math.cos(math.radians(proj_lat)) * math.sin(d_lon / 2.0) ** 2
+            )
+            c = 2.0 * math.atan2(math.sqrt(a), math.sqrt(max(1.0 - a, 0.0)))
+            d = r_earth * c
+            if d < min_dist:
+                min_dist = d
+        return float(round(max(min_dist, 0.4), 2))
+
     def calculate_peak_coastal_surge_m(
         self,
         p_c: float,

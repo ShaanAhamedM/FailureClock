@@ -116,9 +116,10 @@ class HazardEnsembleGenerator:
         cumulative_rain_mm = 0.0
         prev_t = time_steps[0]
 
-        # Approximate distance to coastline (Odisha coastline ~ lon 85.83 at Puri)
-        # Puri coast is roughly southeast: distance from shoreline approx:
-        dist_to_coast_km = max((asset.lon - 85.83) * 80.0 + (asset.lat - 19.80) * 40.0, 0.5)
+        # Distance to Puri District coastline
+        dist_to_coast_km = asset.attrs.get("distance_to_coast_km")
+        if dist_to_coast_km is None:
+            dist_to_coast_km = self.surge_model.calculate_distance_to_coastline_km(asset.lat, asset.lon)
 
         for t in time_steps:
             storm = self.interpolate_storm_at_time(track, t)

@@ -76,6 +76,9 @@ class ActionRanker:
         """
         if not action.route_asset_ids:
             action.deadline_h = -4.0
+            action.deadline_confidence_p10_h = -6.0
+            action.deadline_confidence_p50_h = -4.0
+            action.deadline_confidence_p90_h = -2.0
             return
 
         p10_closures: List[float] = []
@@ -105,4 +108,6 @@ class ActionRanker:
             action.deadline_confidence_p90_h = round(earliest_p90, 1)  # Optimistic
         else:
             action.deadline_h = -5.0
+            action.deadline_confidence_p10_h = -7.0
             action.deadline_confidence_p50_h = -5.0
+            action.deadline_confidence_p90_h = -3.0
