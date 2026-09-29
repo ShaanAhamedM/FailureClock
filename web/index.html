@@ -3,193 +3,292 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Failure Clock — Cyclone Impact & Infrastructure Forecaster</title>
+  <title>Failure Clock — Cyclone Infrastructure Intelligence</title>
+  
   <!-- Leaflet CSS -->
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-  <!-- Minimalist Fonts -->
+  
+  <!-- Modern Typography (Plus Jakarta Sans & JetBrains Mono) -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  
   <!-- Chart.js -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-  <!-- Stylesheet -->
+  
+  <!-- Master Stylesheet -->
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
-  <div id="app">
-    <!-- Top Header -->
-    <header class="header">
-      <div class="brand">
-        <span class="brand-title">FAILURE CLOCK</span>
-        <span class="brand-sub">Cyclone Lifeline Vulnerability & Deadline Forecaster</span>
+  <div id="app" class="app-root">
+    
+    <!-- Full-Bleed Map Canvas (The Hero) -->
+    <div id="map" class="hero-map"></div>
+
+    <!-- Floating Top Navigation Pill -->
+    <header class="floating-nav-island">
+      <div class="nav-brand">
+        <div class="brand-mark">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="10"></circle>
+            <polyline points="12 6 12 12 16 14"></polyline>
+          </svg>
+        </div>
+        <div class="brand-text">
+          <span class="brand-name">FAILURE CLOCK</span>
+          <span class="brand-badge">PURI DISTRICT · ODISHА</span>
+        </div>
       </div>
 
-      <div class="header-controls">
-        <div class="scenario-box">
-          <label for="scenarioSelect">Storm Scenario:</label>
-          <select id="scenarioSelect" class="clean-select">
-            <option value="severe_cyclone_live" selected>Live Forecast (Category 4 Approach)</option>
-            <option value="fani_2019">Cyclone Fani (2019 Historical Replay)</option>
-            <option value="red_team_storm">Red Team (Adversarial Stress Test)</option>
-          </select>
-        </div>
+      <nav class="nav-segmented-control">
+        <button class="nav-segment-btn active" data-drawer="actions">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path></svg>
+          <span>Deadlines</span>
+          <span class="count-bubble" id="badgeActionCount">6</span>
+        </button>
+        <button class="nav-segment-btn" data-drawer="timeline">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"></line><line x1="12" y1="20" x2="12" y2="4"></line><line x1="6" y1="20" x2="6" y2="14"></line></svg>
+          <span>Failure Sequence</span>
+        </button>
+        <button class="nav-segment-btn" data-drawer="timemachine">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 8 14"></polyline></svg>
+          <span>Time Machine</span>
+        </button>
+        <button class="nav-segment-btn" data-drawer="council">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M22 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
+          <span>Crisis Council</span>
+        </button>
+      </nav>
+
+      <div class="nav-tools">
+        <select id="scenarioSelect" class="scenario-pill-select" title="Switch Cyclone Scenario">
+          <option value="severe_cyclone_live" selected>Live Category 4 Approach</option>
+          <option value="fani_2019">Cyclone Fani (2019 Replay)</option>
+          <option value="red_team_storm">Red Team Stress Test</option>
+        </select>
+        <button id="btnToggleDrawer" class="btn-icon-toggle" title="Toggle Slide-Over Panel">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><line x1="15" y1="3" x2="15" y2="21"></line></svg>
+        </button>
       </div>
     </header>
 
-    <!-- Main Time Bar (Central Control) -->
-    <div class="timebar">
-      <div class="timebar-left">
-        <button id="btnPlayPause" class="btn-play">▶ Play</button>
-        <button id="btnStepBack" class="btn-step" title="Step back 1 hour">◀ -1h</button>
-        <button id="btnStepFwd" class="btn-step" title="Step forward 1 hour">+1h ▶</button>
-        <div class="time-display" id="scrubClockDisplay">T-12.0h</div>
-        <div class="phase-text" id="phaseIndicator">Pre-Landfall Preparation</div>
+    <!-- Bottom Floating Command Island (The Timeline Scrubber) -->
+    <footer class="floating-scrubber-island">
+      <div class="scrubber-clock-section">
+        <div class="clock-time" id="clockDisplay">T-12.0h</div>
+        <div class="clock-label" id="phaseDisplay">12 Hours to Landfall</div>
       </div>
 
-      <div class="timebar-center">
-        <input type="range" id="timeSlider" min="-24" max="36" step="1" value="-12" class="clean-slider">
-        <div class="slider-labels">
-          <span>T-24h (Warning)</span>
-          <span>T-12h</span>
-          <span class="landfall-marker">T=0h (Landfall)</span>
-          <span>T+12h</span>
+      <div class="scrubber-slider-section">
+        <div class="scrubber-bar-container">
+          <input type="range" id="timeSlider" min="-24" max="36" step="1" value="-12" class="scrubber-range-input">
+          <div class="scrubber-progress-fill" id="sliderFill"></div>
+        </div>
+        <div class="scrubber-milestones">
+          <span>T-24h Warning</span>
+          <span>T-12h Prep</span>
+          <span class="landfall-flag">T=0 Landfall</span>
+          <span>T+12h Peak</span>
           <span>T+24h</span>
-          <span>T+36h (Recovery)</span>
+          <span>T+36h Recovery</span>
         </div>
       </div>
 
-      <div class="timebar-right">
-        <div class="stat-pill">
-          <span class="stat-lbl">Active</span>
-          <span class="stat-val" id="countOperating">0</span>
+      <div class="scrubber-playback-controls">
+        <button id="btnStepBack" class="btn-scrub-icon" title="Step -1 hour">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polygon points="19 20 9 12 19 4 19 20"></polygon><line x1="5" y1="19" x2="5" y2="5"></line></svg>
+        </button>
+        <button id="btnPlayPause" class="btn-play-pause" title="Play / Pause cascade animation">
+          <svg id="iconPlay" width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
+          <svg id="iconPause" class="hidden" width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="4" width="4" height="16"></rect><rect x="14" y="4" width="4" height="16"></rect></svg>
+        </button>
+        <button id="btnStepFwd" class="btn-scrub-icon" title="Step +1 hour">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polygon points="5 4 15 12 5 20 5 4"></polygon><line x1="19" y1="5" x2="19" y2="19"></line></svg>
+        </button>
+      </div>
+
+      <div class="scrubber-telemetry">
+        <div class="telemetry-pill">
+          <span class="telemetry-dot online"></span>
+          <span class="telemetry-val" id="statOperating">0</span>
+          <span class="telemetry-label">Grid</span>
         </div>
-        <div class="stat-pill">
-          <span class="stat-lbl">Backup</span>
-          <span class="stat-val" id="countBackup">0</span>
+        <div class="telemetry-pill">
+          <span class="telemetry-dot backup"></span>
+          <span class="telemetry-val" id="statBackup">0</span>
+          <span class="telemetry-label">Backup</span>
         </div>
-        <div class="stat-pill failed-pill">
-          <span class="stat-lbl">Failed</span>
-          <span class="stat-val" id="countFailed">0</span>
+        <div class="telemetry-pill">
+          <span class="telemetry-dot failed"></span>
+          <span class="telemetry-val" id="statFailed">0</span>
+          <span class="telemetry-label">Dark</span>
         </div>
       </div>
+    </footer>
+
+    <!-- Minimalist Map Legend (Bottom-Left) -->
+    <div class="floating-legend">
+      <div class="legend-row"><span class="legend-badge">H</span> Hospital</div>
+      <div class="legend-row"><span class="legend-badge">SS</span> Substation</div>
+      <div class="legend-row"><span class="legend-badge">TX</span> Telecom</div>
+      <div class="legend-row"><span class="legend-track open"></span> Road Passable</div>
+      <div class="legend-row"><span class="legend-track flooded"></span> Road Flooded</div>
     </div>
 
-    <!-- Main Workspace (Map on Left, Simple Side Panel on Right) -->
-    <div class="workspace">
-      <!-- Left: Clean Map -->
-      <div class="map-container">
-        <div id="map"></div>
-        <div class="map-legend">
-          <div class="legend-item"><span class="legend-icon op">H</span> Hospital</div>
-          <div class="legend-item"><span class="legend-icon ss">SS</span> Substation</div>
-          <div class="legend-item"><span class="legend-icon tx">TX</span> Tower</div>
-          <div class="legend-item"><span class="legend-line pass"></span> Road Open</div>
-          <div class="legend-item"><span class="legend-line cut"></span> Road Flooded</div>
+    <!-- Slide-Over Drawer (Non-Intrusive, Collapsible) -->
+    <aside id="slideDrawer" class="slide-drawer collapsed">
+      <div class="drawer-header">
+        <div class="drawer-title-group">
+          <h2 id="drawerTitle">Action Deadlines</h2>
+          <span class="drawer-subtitle" id="drawerSubtitle">Pre-landfall intervention countdowns & route passability</span>
         </div>
+        <button id="btnCloseDrawer" class="btn-close-drawer" title="Close Panel">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+        </button>
       </div>
 
-      <!-- Right: Unified Information Panel -->
-      <aside class="side-panel">
-        <!-- Clean Panel Tabs -->
-        <div class="panel-tabs">
-          <button class="panel-tab active" data-view="view-actions">What to Do Now</button>
-          <button class="panel-tab" data-view="view-timeline">Failure Sequence</button>
-          <button class="panel-tab" data-view="view-detail" id="tabDetail">Asset Detail</button>
-          <button class="panel-tab" data-view="view-council">Crisis Plan</button>
-        </div>
+      <div class="drawer-scroll-body">
+        
+        <!-- SECTION 1: ACTION DEADLINES -->
+        <section id="paneActions" class="drawer-pane active">
+          <div id="actionsContainer" class="cards-stack">
+            <!-- Populated dynamically with sleek action cards -->
+          </div>
+        </section>
 
-        <!-- VIEW 1: Recommended Actions with Deadlines -->
-        <div id="view-actions" class="panel-content active">
-          <div class="content-header">
-            <h3>Pre-Landfall Action Deadlines</h3>
-            <p>Actions ranked by life-saving benefit with route closure departure deadlines.</p>
+        <!-- SECTION 2: FAILURE SEQUENCE -->
+        <section id="paneTimeline" class="drawer-pane">
+          <div class="timeline-meta-box">
+            <div class="meta-stat">
+              <span class="meta-label">Total Outage Risk</span>
+              <span class="meta-number" id="metricOutagePct">--%</span>
+            </div>
+            <div class="meta-stat">
+              <span class="meta-label">Patient Hours at Risk</span>
+              <span class="meta-number" id="metricPatientHours">--</span>
+            </div>
           </div>
-          <div id="actionsList" class="cards-list">
-            <!-- Dynamic Actions -->
+          <div id="sequenceContainer" class="sequence-stream">
+            <!-- Populated dynamically -->
           </div>
-        </div>
+        </section>
 
-        <!-- VIEW 2: Chronological Sequence of Failures -->
-        <div id="view-timeline" class="panel-content">
-          <div class="content-header">
-            <h3>Predicted Failure Sequence</h3>
-            <p>Chronological order of which critical lifelines will stop working.</p>
+        <!-- SECTION 3: ASSET DETAIL (OPENS ON MARKER CLICK) -->
+        <section id="paneDetail" class="drawer-pane">
+          <div id="detailEmptyMessage" class="empty-state-notice">
+            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
+            <p>Click any facility or road on the map to inspect its failure timeline and causal chain.</p>
           </div>
-          <div id="failureSequenceList" class="sequence-list">
-            <!-- Dynamic Failure Timeline -->
-          </div>
-        </div>
-
-        <!-- VIEW 3: Asset Detail (Opens when clicking on map) -->
-        <div id="view-detail" class="panel-content">
-          <div id="detailEmptyMessage" class="empty-state">
-            <p>Click any hospital, substation, or tower on the map to see its failure timing and causal chain.</p>
-          </div>
-          <div id="detailContent" class="detail-body hidden">
-            <div class="detail-header">
-              <span class="detail-badge" id="detailType">HOSPITAL</span>
-              <h3 id="detailName">District Headquarter Hospital</h3>
-              <div class="detail-sub" id="detailMeta">Puri District</div>
+          
+          <div id="detailCard" class="detail-card-view hidden">
+            <div class="asset-card-hero">
+              <div class="asset-hero-top">
+                <span class="asset-category-pill" id="detailTypeBadge">HOSPITAL</span>
+                <span class="asset-status-pill" id="detailCurrentState">OPERATING</span>
+              </div>
+              <h3 class="asset-title" id="detailTitle">District Headquarter Hospital</h3>
+              <div class="asset-location" id="detailLocation">Puri Town Center · Lat: 19.814, Lon: 85.827</div>
             </div>
 
-            <div class="timing-row">
-              <div class="timing-box">
-                <span class="lbl">Early Risk (P10)</span>
-                <span class="val" id="detailP10">--</span>
+            <!-- Probability Distributions -->
+            <div class="probability-distribution-grid">
+              <div class="prob-card">
+                <span class="prob-label">P10 (Early Failure)</span>
+                <span class="prob-time" id="detailP10">--</span>
               </div>
-              <div class="timing-box highlight">
-                <span class="lbl">Expected Failure (P50)</span>
-                <span class="val" id="detailP50">--</span>
+              <div class="prob-card highlighted">
+                <span class="prob-label">P50 (Expected Outage)</span>
+                <span class="prob-time" id="detailP50">--</span>
               </div>
-              <div class="timing-box">
-                <span class="lbl">Late Risk (P90)</span>
-                <span class="val" id="detailP90">--</span>
-              </div>
-            </div>
-
-            <div class="info-block">
-              <div class="block-title">Primary Failure Cause</div>
-              <div class="cause-text" id="detailCause">--</div>
-            </div>
-
-            <div class="info-block">
-              <div class="block-title">Step-by-Step Causal Chain</div>
-              <div id="detailChain" class="chain-list">
-                <!-- Causal steps -->
+              <div class="prob-card">
+                <span class="prob-label">P90 (Late Cascade)</span>
+                <span class="prob-time" id="detailP90">--</span>
               </div>
             </div>
 
-            <div class="info-block">
-              <div class="block-title">Dependencies & Supply Route</div>
-              <div class="dep-text" id="detailDeps">--</div>
+            <!-- Failure Cause & Vulnerability -->
+            <div class="detail-section-card">
+              <div class="section-card-title">Primary Outage Trigger</div>
+              <div class="cause-highlight-banner" id="detailDominantCause">Grid Power Tripped (72%)</div>
+              <div id="detailCauseBars" class="cause-bars-stack"></div>
+            </div>
+
+            <!-- Causal Story Chain -->
+            <div class="detail-section-card">
+              <div class="section-card-title">Causal Dependency Chain</div>
+              <div id="detailChainSteps" class="causal-step-flow"></div>
+            </div>
+
+            <!-- Upstream Links -->
+            <div class="detail-section-card">
+              <div class="section-card-title">Dependency Network</div>
+              <div class="dependency-spec-list">
+                <div class="dep-spec-item">
+                  <span class="dep-key">Feeder / Power Source:</span>
+                  <span class="dep-val" id="detailPowerSrc">--</span>
+                </div>
+                <div class="dep-spec-item">
+                  <span class="dep-key">Consumable Resupply Path:</span>
+                  <span class="dep-val" id="detailResupplyPath">--</span>
+                </div>
+              </div>
             </div>
           </div>
-        </div>
+        </section>
 
-        <!-- VIEW 4: Grounded Crisis Plan -->
-        <div id="view-council" class="panel-content">
-          <div class="content-header">
-            <h3>Coordinated Inter-Agency Action Plan</h3>
-            <p>Consensus between Collector, Health (CMO), Power Utility, and Roads.</p>
+        <!-- SECTION 4: TIME MACHINE (WHAT-IF) -->
+        <section id="paneTimemachine" class="drawer-pane">
+          <div class="timemachine-hero">
+            <div class="tm-description">
+              Select pre-landfall interventions to fork a counterfactual timeline. Computed using <b>Common Random Numbers</b> for exact causality.
+            </div>
+            <button id="btnRunFork" class="btn-fork-timeline">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="16 3 21 3 21 8"></polyline><line x1="4" y1="20" x2="21" y2="3"></line><polyline points="21 16 21 21 16 21"></polyline><line x1="15" y1="15" x2="21" y2="21"></line><line x1="4" y1="4" x2="9" y2="9"></line></svg>
+              <span>Compute Forked Timeline</span>
+            </button>
           </div>
-          <div id="councilOrdersList" class="orders-list">
-            <!-- Dynamic Orders -->
+
+          <div class="whatif-interventions-checklist" id="whatifOptionsContainer">
+            <!-- Dynamically populated options -->
           </div>
-          <div class="transcript-box">
-            <div class="block-title">Council Deliberation Notes</div>
-            <div id="councilSummary" class="notes-feed">
-              <!-- Summary dialogue -->
+
+          <div class="whatif-chart-card">
+            <div class="chart-header">
+              <span class="chart-title">Lifeline Loss (CLLI): Baseline vs Forked</span>
+              <span class="points-saved-badge" id="tmPointsSaved">+0.0 Saved</span>
+            </div>
+            <div class="chart-wrapper">
+              <canvas id="tmChart"></canvas>
             </div>
           </div>
-        </div>
+        </section>
 
-      </aside>
-    </div>
+        <!-- SECTION 5: CRISIS COUNCIL (SITUATION ROOM) -->
+        <section id="paneCouncil" class="drawer-pane">
+          <div class="council-memorandum-header">
+            <div class="council-seal">SITUATION ROOM MEMORANDUM</div>
+            <div class="council-meta">Inter-Agency Cyclone Crisis Council · Puri Collectorate</div>
+          </div>
+
+          <div class="council-orders-block">
+            <div class="block-heading">Signed Coordinated Action Plan</div>
+            <div id="councilOrdersContainer" class="orders-timeline"></div>
+          </div>
+
+          <div class="council-transcript-block">
+            <div class="block-heading">Grounded Stakeholder Deliberation</div>
+            <div id="councilChatContainer" class="deliberation-stream"></div>
+          </div>
+        </section>
+
+      </div>
+    </aside>
+
   </div>
 
   <!-- Leaflet JS -->
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-  <!-- Application JS -->
+  <!-- Application Controller -->
   <script src="app.js"></script>
 </body>
 </html>
