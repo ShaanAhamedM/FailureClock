@@ -1,0 +1,10 @@
+asset_id,name,actual_failed,actual_fail_time_rel_landfall_h,source,notes
+SS-PURI-GRID,Puri 132/33kV Grid Substation,true,1.0,OPTCL Post-Fani Damage Assessment,132kV transmission towers buckled under 205 km/h gusts
+SS-TOWN-33,Puri Town 33/11kV Substation,true,1.2,CESU Outage Bulletin 03-May-2019,Upstream grid loss + 33kV bushing damage
+SS-BALIGHAI,Balighai 33/11kV Substation,true,0.5,OSDMA Situation Report #4,Coastal feeder lines snapped early
+HOSP-DHH-PURI,District Headquarter Hospital (DHH Puri),true,15.0,NDMA Health Cluster Post-Disaster Report,Diesel generator ran 14h; fuel bowser blocked on link road; ICU dark until military transport
+TWR-PURI-CENTRAL,BSNL/Jio Central Hub Tower,true,4.0,COAI / TRAI Cyclone Fani Telecom Report,Battery backup exhausted at 12:30 IST (~T+4.5h)
+TWR-GRAND-ROAD,Grand Road Telecom Tower,true,2.5,Media & Telecom NOC Dispatch,Unbacked tower collapsed on battery depletion
+RD-MARINE-DRIVE,SH-60 Marine Drive Coastal Corridor,true,-1.5,Odisha PWD Works Dept Assessment,Surge overwash and debris blockage 2h before eye landfall
+RD-PURI-TOWN-LINK,Samang-Town Access Link Road,true,-1.0,Puri Municipality / NDRF Tree Clearance Log,Uprooted banyans blocked corridor to Talabania depot
+PUMP-MANGALAGHAT,Mangalaghat Main Water Works Pump,true,3.0,Puri Public Health Dept SITREP,Pumping ceased after feeder tripped; backup flooded

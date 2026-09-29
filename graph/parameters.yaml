@@ -1,0 +1,51 @@
+# Failure Clock: Infrastructure & Hazard Assumptions
+# Note: Defaults are engineering assumptions drawn from Indian disaster management standards (NDMA/OSDMA)
+# and utility operational guidelines. All parameters can be overridden per asset or globally.
+
+telecom:
+  default_battery_hours_min: 2.0
+  default_battery_hours_max: 4.0
+  generator_equipped_fraction: 0.35
+  generator_fuel_hours_min: 12.0
+  generator_fuel_hours_max: 24.0
+  wind_gust_fail_threshold_ms: 45.0  # ~162 km/h
+  flood_critical_depth_m: 0.6
+
+hospitals:
+  generator_equipped_fraction: 0.90
+  default_fuel_hours_min: 8.0
+  default_fuel_hours_max: 24.0
+  fuel_burn_rate_lph: 25.0           # Litres per hour for typical 125-250 kVA DG set
+  tank_capacity_litres: 600.0
+  flood_critical_depth_m: 0.5        # Ground floor / basement electrical rooms
+  wind_gust_fail_threshold_ms: 55.0  # Structure damage / flying debris hazard
+
+substations:
+  flood_critical_height_m: 0.4       # Inundation of yard / switchgear
+  wind_gust_fail_threshold_ms: 48.0  # Transformer bushings, gantry collapse
+  auto_trip_wind_speed_ms: 36.0      # ~130 km/h precautionary safety tripping
+  restoration_hours_mean: 36.0
+
+feeders:
+  pole_spacing_m: 50.0
+  fragility_lognormal_median_ms: 38.0 # ~137 km/h 50% line failure probability
+  fragility_lognormal_sigma: 0.25
+  vegetation_factor: 1.2             # Higher risk in coastal tree-dense corridors
+
+roads:
+  default_passability_depth_m: 0.30  # Standard utility vehicles / light commercial trucks
+  high_clearance_depth_m: 0.60       # Disaster response heavy trucks / unimogs
+  debris_blockage_wind_threshold_ms: 35.0 # Tree fall causing road block
+
+water_pumps:
+  grid_dependent: true
+  backup_generator_fraction: 0.25
+  default_fuel_hours_min: 6.0
+  default_fuel_hours_max: 18.0
+  flood_critical_depth_m: 0.75
+
+resupply:
+  fuel_tanker_speed_kmh: 30.0
+  max_concurrent_tankers: 4
+  refuel_duration_hours: 0.75
+  tanker_capacity_litres: 2000.0
