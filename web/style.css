@@ -157,13 +157,14 @@ html, body {
   z-index: 1000;
   display: flex;
   align-items: center;
-  gap: 16px;
+  flex-wrap: nowrap;
+  gap: 12px;
   background: var(--surface-glass);
   backdrop-filter: blur(24px) saturate(180%);
   -webkit-backdrop-filter: blur(24px) saturate(180%);
   border: 1px solid var(--border-standard);
   border-radius: 9999px;
-  padding: 6px 14px 6px 18px;
+  padding: 6px 14px 6px 16px;
   box-shadow: var(--shadow-island);
   max-width: calc(100vw - 40px);
   transition: all var(--duration-standard) var(--ease-spring);
@@ -182,8 +183,8 @@ html, body {
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 30px;
-  height: 30px;
+  width: 28px;
+  height: 28px;
   border-radius: 50%;
   background: var(--accent-ink);
   color: var(--text-inverted);
@@ -196,7 +197,7 @@ html, body {
 
 .brand-name {
   font-family: var(--font-mono);
-  font-size: 12px;
+  font-size: 11px;
   font-weight: 700;
   letter-spacing: 0.8px;
   color: var(--text-ink);
@@ -204,7 +205,7 @@ html, body {
 }
 
 .brand-badge {
-  font-size: 9px;
+  font-size: 8px;
   font-weight: 600;
   letter-spacing: 0.5px;
   color: var(--text-muted);
@@ -216,29 +217,37 @@ html, body {
 .nav-segmented-control {
   display: flex;
   align-items: center;
-  gap: 4px;
+  gap: 2px;
   background: var(--surface-muted);
   border-radius: 9999px;
   padding: 3px;
-  flex-shrink: 0;
+  flex-shrink: 1;
+  overflow-x: auto;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.nav-segmented-control::-webkit-scrollbar {
+  display: none;
 }
 
 .nav-segment-btn {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
+  gap: 5px;
   background: transparent;
   border: none;
   outline: none;
-  padding: 7px 14px;
+  padding: 6px 12px;
   border-radius: 9999px;
   font-family: var(--font-sans);
-  font-size: 12px;
+  font-size: 11px;
   font-weight: 600;
   color: var(--text-muted);
   cursor: pointer;
   transition: all var(--duration-fast) ease;
   white-space: nowrap;
+  flex-shrink: 0;
 }
 
 .nav-segment-btn:hover {
@@ -452,8 +461,9 @@ html, body {
 }
 
 .scrubber-milestones {
-  display: flex;
-  justify-content: space-between;
+  position: relative;
+  width: 100%;
+  height: 16px;
   font-size: 9px;
   font-weight: 600;
   color: var(--text-muted);
@@ -462,9 +472,13 @@ html, body {
 }
 
 .milestone-tick {
+  position: absolute;
+  top: 0;
+  transform: translateX(-50%);
   cursor: pointer;
   padding: 1px 4px;
   border-radius: 4px;
+  white-space: nowrap;
   transition: all 0.15s ease;
 }
 
@@ -473,9 +487,9 @@ html, body {
   color: var(--text-ink);
 }
 
-.scrubber-milestones .landfall-flag {
+.milestone-tick.landfall-flag {
   color: var(--text-ink);
-  font-weight: 700;
+  font-weight: 800;
   background: rgba(0, 0, 0, 0.06);
 }
 
@@ -562,8 +576,8 @@ html, body {
 }
 
 .telemetry-dot.online {
-  background: var(--status-online);
-  box-shadow: 0 0 6px var(--status-online);
+  background: #18181b;
+  box-shadow: 0 0 6px rgba(24, 24, 27, 0.4);
 }
 
 .telemetry-dot.backup {
@@ -590,11 +604,11 @@ html, body {
 }
 
 /* ==========================================================================
-   Minimalist Floating Map Legend (Top-Left under zoom buttons)
+   Minimalist Floating Map Legend (Top-Left below zoom buttons)
    ========================================================================== */
 .floating-legend {
   position: absolute;
-  top: 170px;
+  top: 154px;
   left: 20px;
   z-index: 500;
   background: var(--surface-glass);
@@ -605,17 +619,34 @@ html, body {
   padding: 10px 12px;
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 5px;
   box-shadow: var(--shadow-island);
   font-size: 10px;
-  font-weight: 600;
   color: var(--text-charcoal);
+  width: 175px;
+}
+
+.legend-group-title {
+  font-family: var(--font-mono);
+  font-size: 8px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  color: var(--text-muted);
+  text-transform: uppercase;
+}
+
+.legend-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
 }
 
 .legend-row {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 7px;
+  font-size: 10px;
+  font-weight: 500;
 }
 
 .legend-badge {
@@ -630,12 +661,37 @@ html, body {
   font-family: var(--font-mono);
   font-size: 8px;
   font-weight: 700;
+  flex-shrink: 0;
+}
+
+.legend-status-dot,
+.legend-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.legend-status-dot.operating,
+.legend-dot.operating {
+  background: #18181b;
+}
+
+.legend-status-dot.backup,
+.legend-dot.backup {
+  background: var(--status-backup);
+}
+
+.legend-status-dot.failed,
+.legend-dot.failed {
+  background: var(--status-failed);
 }
 
 .legend-track {
   width: 18px;
   height: 3px;
   border-radius: 2px;
+  flex-shrink: 0;
 }
 
 .legend-track.open {
@@ -963,6 +1019,36 @@ html, body {
 
 .seq-item:hover::before {
   background: var(--accent-ink);
+}
+
+.seq-item.is-failed {
+  border-left: 3px solid var(--status-failed);
+  background: var(--surface-pure);
+}
+
+.seq-item.is-failed::before {
+  border-color: var(--status-failed);
+  background: var(--status-failed);
+}
+
+.seq-item.is-failed .seq-time-badge {
+  color: var(--status-failed);
+  background: var(--status-failed-bg);
+  padding: 1px 6px;
+  border-radius: 4px;
+}
+
+.seq-item.is-pending {
+  opacity: 0.60;
+  border-left: 3px solid #e4e4e7;
+}
+
+.seq-item.is-pending::before {
+  border-color: #a1a1aa;
+}
+
+.seq-item.is-pending:hover {
+  opacity: 1;
 }
 
 .seq-header {

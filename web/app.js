@@ -31,6 +31,7 @@ const STATE = {
   selectedMarkerElement: null,
   tmChartInstance: null,
   currentDrawerPane: "actions",
+  previousDrawerPane: "actions",
   isDrawerOpen: false,
 };
 
@@ -104,10 +105,10 @@ function initNavigation() {
     deselectActiveMarker();
   });
 
-  // Back to Action Deadlines from Asset Detail
+  // Back to previous view from Asset Detail
   if (backBtn) {
     backBtn.addEventListener("click", () => {
-      switchDrawerPane("actions");
+      switchDrawerPane(STATE.previousDrawerPane || "actions");
     });
   }
 
@@ -155,6 +156,11 @@ function toggleDrawer() {
 }
 
 function switchDrawerPane(paneName) {
+  if (STATE.currentDrawerPane !== "detail" && paneName === "detail") {
+    STATE.previousDrawerPane = STATE.currentDrawerPane;
+  } else if (paneName !== "detail") {
+    STATE.previousDrawerPane = paneName;
+  }
   STATE.currentDrawerPane = paneName;
 
   const titleEl = document.getElementById("drawerTitle");
@@ -202,6 +208,16 @@ function switchDrawerPane(paneName) {
   titleEl.textContent = current.title;
   subEl.textContent = current.sub;
 
+  if (paneName === "detail") {
+    const backBtn = document.getElementById("btnBackToActions");
+    if (backBtn) {
+      const prev = STATE.previousDrawerPane || "actions";
+      const prevTitle = paneMap[prev]?.title || "Deadlines";
+      const span = backBtn.querySelector("span");
+      if (span) span.textContent = `Back to ${prevTitle}`;
+    }
+  }
+
   // Toggle active pane
   document.querySelectorAll(".drawer-pane").forEach((p) => p.classList.remove("active"));
   const activePane = document.getElementById(current.id);
@@ -237,6 +253,10 @@ function initScenarioSelect() {
 // ==========================================================================
 async function loadScenario(scenarioId) {
   STATE.scenarioId = scenarioId;
+  STATE.keystonesData = null;
+  STATE.redteamData = null;
+  STATE.whatifData = null;
+  STATE.doomsdayBoard = [];
 
   try {
     const [assetsRes, graphRes, actionsRes, councilRes, keystonesRes, doomsdayRes] = await Promise.all([
@@ -277,6 +297,7 @@ async function loadScenario(scenarioId) {
       slider.max = maxT;
       STATE.currentTimeH = (minT <= -12.0 && maxT >= -12.0) ? -12.0 : minT;
       slider.value = STATE.currentTimeH;
+      renderScrubberMilestones();
     }
 
     // Update Action count badge in top island
@@ -563,14 +584,18 @@ function updateStateAtTime(timeH) {
     STATE.stormMarker.setLatLng([pos.lat, pos.lon]);
   }
 
-  // Visible progress fill width update
+  // Visible progress fill width update and slider background
   const slider = document.getElementById("timeSlider");
   const fill = document.getElementById("sliderFill");
-  if (slider && fill) {
-    const min = parseFloat(slider.min);
-    const max = parseFloat(slider.max);
+  if (slider) {
+    const min = parseFloat(slider.min || -24);
+    const max = parseFloat(slider.max || 36);
     const pct = ((timeH - min) / (max - min)) * 100;
-    fill.style.width = `${Math.max(0, Math.min(pct, 100))}%`;
+    const clampedPct = Math.max(0, Math.min(pct, 100));
+    if (fill) {
+      fill.style.width = `${clampedPct}%`;
+    }
+    slider.style.background = `linear-gradient(to right, #18181b 0%, #18181b ${clampedPct}%, #e4e4e7 ${clampedPct}%, #e4e4e7 100%)`;
   }
 }
 
@@ -611,20 +636,6 @@ function initScrubber() {
     renderActions();
   });
 
-  // Clickable timeline milestones
-  document.querySelectorAll(".milestone-tick").forEach((tick) => {
-    tick.addEventListener("click", () => {
-      const targetT = parseFloat(tick.dataset.time);
-      if (!isNaN(targetT)) {
-        STATE.currentTimeH = targetT;
-        slider.value = targetT;
-        updateTimeDisplay();
-        updateStateAtTime(targetT);
-        renderActions();
-      }
-    });
-  });
-
   playBtn.addEventListener("click", () => {
     if (STATE.isPlaying) pausePlay();
     else startPlay();
@@ -646,6 +657,50 @@ function initScrubber() {
     updateTimeDisplay();
     updateStateAtTime(STATE.currentTimeH);
     renderActions();
+  });
+}
+
+function renderScrubberMilestones() {
+  const container = document.getElementById("scrubberMilestones");
+  const slider = document.getElementById("timeSlider");
+  if (!container || !slider) return;
+  container.innerHTML = "";
+
+  const min = parseFloat(slider.min || -24);
+  const max = parseFloat(slider.max || 36);
+  const span = max - min;
+  if (span <= 0) return;
+
+  const candidateMilestones = [
+    { t: -36, label: "T-36h" },
+    { t: -24, label: "T-24h" },
+    { t: -12, label: "T-12h" },
+    { t: 0, label: "T0 Landfall", key: true },
+    { t: 12, label: "T+12h" },
+    { t: 24, label: "T+24h" },
+    { t: 36, label: "T+36h" },
+    { t: 48, label: "T+48h" },
+  ];
+
+  const validMilestones = candidateMilestones.filter((m) => m.t >= min && m.t <= max);
+
+  validMilestones.forEach((m) => {
+    const pct = ((m.t - min) / span) * 100;
+    const tick = document.createElement("span");
+    tick.className = `milestone-tick ${m.key ? "landfall-flag" : ""}`;
+    tick.dataset.time = m.t;
+    tick.textContent = m.label;
+    tick.style.left = `${pct}%`;
+
+    tick.addEventListener("click", () => {
+      STATE.currentTimeH = m.t;
+      slider.value = m.t;
+      updateTimeDisplay();
+      updateStateAtTime(m.t);
+      renderActions();
+    });
+
+    container.appendChild(tick);
   });
 }
 
@@ -705,9 +760,10 @@ function renderActions() {
 
   actions.forEach((act, idx) => {
     const deadlineH = act.deadline_hour_rel !== undefined ? act.deadline_hour_rel : act.deadline_h;
-    const hoursRemaining = act.hours_remaining !== undefined ? act.hours_remaining : (deadlineH - STATE.currentTimeH);
-    const isExpired = act.is_expired !== undefined ? act.is_expired : (hoursRemaining <= 0);
-    const isUrgent = hoursRemaining > 0 && hoursRemaining <= 3.0;
+    const diff = deadlineH - STATE.currentTimeH;
+    const isExpired = diff <= 0;
+    const isUrgent = !isExpired && diff <= 3.0;
+    const hoursRemaining = Math.max(0, diff);
 
     let deadlineClass = "";
     let deadlineText = `${hoursRemaining.toFixed(1)}h left`;
@@ -1121,8 +1177,10 @@ async function inspectAsset(assetId) {
 
 function applyMarkerSelection(assetId) {
   deselectActiveMarker();
+  STATE.selectedAssetId = assetId;
   const marker = STATE.assetMarkers[assetId];
   if (marker) {
+    if (marker.setZIndexOffset) marker.setZIndexOffset(1000);
     const el = marker.getElement();
     if (el) {
       const badge = el.querySelector(".node-badge-v2");
@@ -1135,6 +1193,10 @@ function applyMarkerSelection(assetId) {
 }
 
 function deselectActiveMarker() {
+  if (STATE.selectedAssetId && STATE.assetMarkers[STATE.selectedAssetId]) {
+    const marker = STATE.assetMarkers[STATE.selectedAssetId];
+    if (marker && marker.setZIndexOffset) marker.setZIndexOffset(0);
+  }
   if (STATE.selectedMarkerElement) {
     STATE.selectedMarkerElement.classList.remove("is-selected");
     STATE.selectedMarkerElement = null;

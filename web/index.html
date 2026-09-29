@@ -89,16 +89,11 @@
 
       <div class="scrubber-slider-section">
         <div class="scrubber-bar-container">
+          <div id="sliderFill" class="scrubber-progress-fill"></div>
           <input type="range" id="timeSlider" min="-24" max="36" step="1" value="-12" class="scrubber-range-input">
-          <div class="scrubber-progress-fill" id="sliderFill"></div>
         </div>
-        <div class="scrubber-milestones">
-          <span class="milestone-tick" data-time="-24">T-24h Warning</span>
-          <span class="milestone-tick" data-time="-12">T-12h Prep</span>
-          <span class="milestone-tick landfall-flag" data-time="0">T=0 Landfall</span>
-          <span class="milestone-tick" data-time="12">T+12h Peak</span>
-          <span class="milestone-tick" data-time="24">T+24h</span>
-          <span class="milestone-tick" data-time="36">T+36h Recovery</span>
+        <div class="scrubber-milestones" id="scrubberMilestones">
+          <!-- Populated dynamically with exact mathematical alignment -->
         </div>
       </div>
 
@@ -134,13 +129,25 @@
       </div>
     </footer>
 
-    <!-- Minimalist Map Legend (Bottom-Left) -->
+    <!-- Minimalist Map Legend (Top-Left below zoom controls) -->
     <div class="floating-legend">
-      <div class="legend-row"><span class="legend-badge">H</span> Hospital</div>
-      <div class="legend-row"><span class="legend-badge">SS</span> Substation</div>
-      <div class="legend-row"><span class="legend-badge">TX</span> Telecom</div>
-      <div class="legend-row"><span class="legend-track open"></span> Road Passable</div>
-      <div class="legend-row"><span class="legend-track flooded"></span> Road Flooded</div>
+      <div class="legend-group-title">INFRASTRUCTURE</div>
+      <div class="legend-grid">
+        <div class="legend-row"><span class="legend-badge">H</span> Hospital</div>
+        <div class="legend-row"><span class="legend-badge">SS</span> Substation</div>
+        <div class="legend-row"><span class="legend-badge">FD</span> Feeder</div>
+        <div class="legend-row"><span class="legend-badge">TX</span> Telecom</div>
+        <div class="legend-row"><span class="legend-badge">WP</span> Water Pump</div>
+        <div class="legend-row"><span class="legend-badge">DP</span> Fuel Depot</div>
+      </div>
+      <div class="legend-group-title" style="margin-top: 6px;">STATE & ACCESS</div>
+      <div class="legend-grid">
+        <div class="legend-row"><span class="legend-status-dot operating"></span> Operating</div>
+        <div class="legend-row"><span class="legend-status-dot backup"></span> On Backup</div>
+        <div class="legend-row"><span class="legend-status-dot failed"></span> Dark / Failed</div>
+        <div class="legend-row"><span class="legend-track open"></span> Road Passable</div>
+        <div class="legend-row"><span class="legend-track flooded"></span> Road Flooded</div>
+      </div>
     </div>
 
     <!-- Slide-Over Drawer (Non-Intrusive, Collapsible) -->
