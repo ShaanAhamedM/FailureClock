@@ -124,12 +124,14 @@ def run_scenario(
 @app.get("/api/scenario/{scenario_id}/assets")
 def get_scenario_assets(scenario_id: str) -> Dict[str, Any]:
     data = ensure_scenario_simulated(scenario_id)
+    scenario = scenarios_dict[scenario_id]
     return {
         "scenario_id": scenario_id,
         "time_steps": data["raw"]["time_steps"],
         "assets": data["dist"],
         "metrics": data["metrics"],
         "clli_timeline": data["clli"],
+        "track": [t.model_dump() for t in scenario.track],
     }
 
 
@@ -247,9 +249,12 @@ def get_doomsday_board(
 def get_keystones_and_shapley(scenario_id: str) -> Dict[str, Any]:
     """Keystone Finder and Shapley Blame Graph (F6)."""
     data = ensure_scenario_simulated(scenario_id)
-    scenario = scenarios_dict[scenario_id]
-    result = wow_engine.compute_keystones_and_shapley(scenario.track, data["raw"], num_mc_runs=20)
-    return result
+    if "keystones" not in data:
+        scenario = scenarios_dict[scenario_id]
+        data["keystones"] = wow_engine.compute_keystones_and_shapley(
+            scenario.track, data["raw"], num_mc_runs=10
+        )
+    return data["keystones"]
 
 
 @app.get("/api/scenario/{scenario_id}/crisis-council")

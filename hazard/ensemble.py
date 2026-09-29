@@ -135,6 +135,7 @@ class HazardEnsembleGenerator:
                 storm.max_sustained_wind_knots,
                 storm.radius_max_wind_km,
                 hours_since_landfall=hours_post_landfall,
+                forward_speed_kmh=storm.forward_speed_kmh,
             )
             wind_gusts.append(round(gust, 2))
 

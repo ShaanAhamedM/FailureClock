@@ -101,10 +101,11 @@ class WowLayerEngine:
 
         keystone_scores: List[Dict[str, Any]] = []
 
-        # Screen potential keystones (substations, primary feeders, lifeline roads)
+        # Screen top potential keystones (substations, primary feeders, lifeline roads)
         critical_candidates = [
             n for n in nodes
             if n.type in (NodeType.SUBSTATION, NodeType.FEEDER, NodeType.ROAD_SEGMENT)
+            and n.criticality >= 0.70
         ]
 
         for cand in critical_candidates:

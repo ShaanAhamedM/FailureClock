@@ -92,13 +92,25 @@ class HollandWindModel:
         v_max_knots: float,
         rmw_km: float,
         hours_since_landfall: float = 0.0,
+        forward_speed_kmh: float = 0.0,
     ) -> float:
         """
-        Calculate 3-second peak wind gust (m/s) at asset location.
+        Calculate 3-second peak wind gust (m/s) at asset location,
+        accounting for rotational profile and forward motion asymmetry.
         """
         v_max_ms = v_max_knots * 0.514444
         dist_km = self.haversine_distance_km(asset_lat, asset_lon, storm_lat, storm_lon)
         v_sustained = self.wind_speed_at_radius(
             dist_km, rmw_km, p_c, asset_lat, v_max_ms, hours_since_landfall
         )
+
+        # Asymmetric forward translation addition (Holland 1980)
+        if forward_speed_kmh > 0.0 and dist_km > 0.0:
+            v_trans_ms = forward_speed_kmh / 3.6
+            d_lat = asset_lat - storm_lat
+            d_lon = asset_lon - storm_lon
+            bearing = math.atan2(d_lon, d_lat)
+            asymmetry_factor = 0.5 * math.sin(bearing)
+            v_sustained = max(v_sustained + v_trans_ms * asymmetry_factor, 0.0)
+
         return float(v_sustained * self.gust_factor)

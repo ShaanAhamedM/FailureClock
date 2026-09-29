@@ -359,7 +359,7 @@ html, body {
   text-overflow: ellipsis;
 }
 
-/* Section 2: Range Slider & Milestones */
+/* Section 2: Range Slider & Progress Fill (BUG-07 Fix) */
 .scrubber-slider-section {
   display: flex;
   flex-direction: column;
@@ -411,6 +411,19 @@ html, body {
   border: 2px solid #ffffff;
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.25);
   cursor: pointer;
+}
+
+/* Visual Progress Fill (BUG-07 Fix) */
+.scrubber-progress-fill {
+  position: absolute;
+  left: 0;
+  top: 9px;
+  height: 6px;
+  background: var(--accent-ink);
+  border-radius: 9999px;
+  pointer-events: none;
+  z-index: 1;
+  transition: width 0.08s linear;
 }
 
 .scrubber-milestones {
@@ -689,7 +702,6 @@ html, body {
   gap: 16px;
 }
 
-/* Custom modern scrollbar */
 .drawer-scroll-body::-webkit-scrollbar {
   width: 5px;
 }
@@ -945,6 +957,26 @@ html, body {
 /* ==========================================================================
    Section 3: Asset Detail Pane (Opens on Marker Click)
    ========================================================================== */
+.btn-back-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: none;
+  border: none;
+  color: var(--text-muted);
+  font-family: var(--font-sans);
+  font-size: 11px;
+  font-weight: 600;
+  cursor: pointer;
+  padding: 2px 0 6px 0;
+  transition: color var(--duration-fast) ease;
+  width: fit-content;
+}
+
+.btn-back-link:hover {
+  color: var(--text-ink);
+}
+
 .empty-state-notice {
   display: flex;
   flex-direction: column;
@@ -998,6 +1030,7 @@ html, body {
   color: var(--text-charcoal);
 }
 
+/* Status Pill: Operating, Backup, Failed (BUG-06 Fix) */
 .asset-status-pill {
   font-family: var(--font-mono);
   font-size: 10px;
@@ -1013,7 +1046,8 @@ html, body {
   color: var(--status-failed);
 }
 
-.asset-status-pill.backup {
+.asset-status-pill.backup,
+.asset-status-pill.on_backup {
   background: var(--status-backup-bg);
   color: var(--status-backup);
 }
@@ -1137,6 +1171,7 @@ html, body {
   height: 100%;
   background: var(--accent-ink);
   border-radius: 4px;
+  transition: width 0.3s ease;
 }
 
 /* Causal Step Flow */
@@ -1467,7 +1502,7 @@ html, body {
 }
 
 /* ==========================================================================
-   Custom Map Markers & Eye Styling
+   Custom Map Markers & Selection Aura (BUG-10 Fix)
    ========================================================================== */
 .custom-node-icon {
   background: transparent;
@@ -1492,6 +1527,15 @@ html, body {
 
 .node-badge-v2:hover {
   transform: scale(1.25);
+}
+
+/* Visual Active Selection Highlight (BUG-10 Fix) */
+.node-badge-v2.is-selected {
+  transform: scale(1.35) !important;
+  outline: 3px solid #09090b;
+  outline-offset: 2px;
+  box-shadow: 0 0 0 6px rgba(9, 9, 11, 0.25), 0 6px 16px rgba(0, 0, 0, 0.4);
+  z-index: 1000 !important;
 }
 
 .node-badge-v2.operating {
@@ -1564,6 +1608,22 @@ html, body {
 @keyframes radarWave {
   0% { transform: scale(0.6); opacity: 0.9; }
   100% { transform: scale(1.6); opacity: 0; }
+}
+
+/* Error Toast Banner (BUG-16 Fix) */
+.error-toast {
+  position: absolute;
+  top: 84px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: #ef4444;
+  color: #ffffff;
+  font-size: 11px;
+  font-weight: 600;
+  padding: 8px 16px;
+  border-radius: 9999px;
+  box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3);
+  z-index: 9999;
 }
 
 /* ==========================================================================

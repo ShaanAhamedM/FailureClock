@@ -256,7 +256,8 @@ class MonteCarloCascadeSimulator:
         interventions: Optional[List[InterventionAction]] = None,
     ) -> Dict[str, Any]:
         rng = np.random.default_rng(random_seed)
-        time_steps = [round(t, 2) for t in np.arange(-24.0, time_horizon_h + dt_h, dt_h)]
+        start_time_h = float(track[0].time_offset_hours) if track else -24.0
+        time_steps = [round(t, 2) for t in np.arange(start_time_h, time_horizon_h + dt_h, dt_h)]
 
         # Pre-generate perturbed tracks and sampled parameters for reproducibility
         nodes = self.gm.infra_graph.nodes
