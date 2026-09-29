@@ -1691,6 +1691,417 @@ html, body {
 }
 
 /* ==========================================================================
+   Section 6: Keystones & Shapley Blame Graph (F6)
+   ========================================================================== */
+.keystone-hero-box {
+  background: var(--surface-pure);
+  border: 1px solid var(--border-subtle);
+  border-radius: 14px;
+  padding: 14px 16px;
+  margin-bottom: 14px;
+}
+
+.keystone-hero-title {
+  font-family: var(--font-mono);
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--text-ink);
+  letter-spacing: 0.3px;
+  margin-bottom: 4px;
+}
+
+.keystone-hero-desc {
+  font-size: 11px;
+  color: var(--text-muted);
+  line-height: 1.45;
+}
+
+.keystone-subheading {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+  color: var(--text-muted);
+  margin-bottom: 10px;
+}
+
+.keystone-card {
+  background: var(--surface-pure);
+  border: 1px solid var(--border-subtle);
+  border-radius: 12px;
+  padding: 12px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  cursor: pointer;
+  transition: all var(--duration-fast) ease;
+}
+
+.keystone-card:hover {
+  border-color: var(--accent-ink);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+}
+
+.keystone-card-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.keystone-rank-badge {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 800;
+  background: var(--accent-ink);
+  color: #ffffff;
+  padding: 2px 8px;
+  border-radius: 6px;
+}
+
+.keystone-score-badge {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--status-failed);
+  background: var(--status-failed-bg);
+  padding: 2px 8px;
+  border-radius: 6px;
+  border: 1px solid rgba(239, 68, 68, 0.2);
+}
+
+.keystone-name {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--text-ink);
+}
+
+.keystone-metrics-row {
+  display: flex;
+  gap: 12px;
+  font-size: 10px;
+  color: var(--text-muted);
+  border-top: 1px solid var(--border-subtle);
+  padding-top: 6px;
+}
+
+.keystone-metrics-row b {
+  color: var(--text-charcoal);
+  font-family: var(--font-mono);
+}
+
+/* Shapley Blame Card */
+.shapley-card {
+  background: var(--surface-pure);
+  border: 1px solid var(--border-subtle);
+  border-radius: 14px;
+  padding: 14px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.shapley-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.shapley-target-name {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--text-ink);
+}
+
+.shapley-risk-badge {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: 800;
+  background: var(--status-failed-bg);
+  color: var(--status-failed);
+  padding: 2px 8px;
+  border-radius: 6px;
+  border: 1px solid rgba(239, 68, 68, 0.2);
+}
+
+.shapley-desc {
+  font-size: 10px;
+  color: var(--text-muted);
+  line-height: 1.4;
+}
+
+.shapley-attributions-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.shapley-item {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 8px 10px;
+  background: var(--surface-muted);
+  border-radius: 8px;
+}
+
+.shapley-item-top {
+  display: flex;
+  justify-content: space-between;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-charcoal);
+}
+
+.shapley-pct {
+  font-family: var(--font-mono);
+  font-weight: 700;
+  color: var(--text-ink);
+}
+
+.shapley-bar-track {
+  height: 4px;
+  background: rgba(0, 0, 0, 0.08);
+  border-radius: 9999px;
+  overflow: hidden;
+}
+
+.shapley-bar-fill {
+  height: 100%;
+  background: var(--accent-ink);
+  border-radius: 9999px;
+  transition: width 0.4s ease;
+}
+
+.shapley-explanation {
+  font-size: 10px;
+  color: var(--text-muted);
+  line-height: 1.35;
+}
+
+/* ==========================================================================
+   Section 7: Red Team Adversarial Stress Test (F3)
+   ========================================================================== */
+.redteam-hero-box {
+  background: var(--surface-pure);
+  border: 1px solid var(--border-subtle);
+  border-radius: 14px;
+  padding: 14px 16px;
+  margin-bottom: 12px;
+}
+
+.redteam-status-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.redteam-title {
+  font-family: var(--font-mono);
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--text-ink);
+}
+
+.redteam-desc {
+  font-size: 10px;
+  color: var(--text-muted);
+  margin-top: 2px;
+  line-height: 1.35;
+}
+
+.btn-run-redteam {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: var(--accent-ink);
+  color: #ffffff;
+  border: none;
+  padding: 7px 12px;
+  border-radius: 8px;
+  font-family: var(--font-sans);
+  font-size: 11px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all var(--duration-fast) ease;
+  white-space: nowrap;
+}
+
+.btn-run-redteam:hover {
+  background: #27272a;
+}
+
+.redteam-score-card {
+  background: var(--surface-pure);
+  border: 1px solid var(--border-subtle);
+  border-radius: 14px;
+  padding: 14px 18px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 16px;
+}
+
+.score-meta {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.score-label {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--text-ink);
+}
+
+.score-subtext {
+  font-size: 10px;
+  color: var(--text-muted);
+}
+
+.score-number {
+  font-family: var(--font-mono);
+  font-size: 24px;
+  font-weight: 800;
+  color: var(--status-failed);
+}
+
+.score-number.robust {
+  color: var(--status-online);
+}
+
+.redteam-subheading {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+  color: var(--text-muted);
+  margin-bottom: 8px;
+}
+
+.redteam-findings-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 14px;
+}
+
+.finding-card {
+  background: var(--surface-pure);
+  border: 1px solid var(--border-subtle);
+  border-left: 3px solid var(--status-failed);
+  border-radius: 10px;
+  padding: 10px 12px;
+  font-size: 11px;
+  color: var(--text-charcoal);
+  line-height: 1.4;
+}
+
+.facility-breakdown-table {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.facility-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: var(--surface-pure);
+  border: 1px solid var(--border-subtle);
+  border-radius: 10px;
+  padding: 8px 12px;
+  font-size: 11px;
+}
+
+.facility-row-name {
+  font-weight: 600;
+  color: var(--text-charcoal);
+}
+
+.facility-row-status {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: 700;
+  padding: 2px 6px;
+  border-radius: 4px;
+}
+
+.facility-row-status.vulnerable {
+  background: var(--status-failed-bg);
+  color: var(--status-failed);
+}
+
+.facility-row-status.secure {
+  background: var(--status-online-bg);
+  color: var(--status-online);
+}
+
+/* Time Machine Controls & Toggle */
+.whatif-controls-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-top: 10px;
+}
+
+.toggle-map-preview {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-charcoal);
+  cursor: pointer;
+  user-select: none;
+}
+
+.toggle-map-preview input {
+  cursor: pointer;
+  accent-color: var(--accent-ink);
+}
+
+/* Action Confidence Interval Badges in Deadlines */
+.confidence-interval-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 6px;
+  margin: 6px 0;
+  background: var(--surface-muted);
+  border-radius: 8px;
+  padding: 6px 8px;
+}
+
+.ci-col {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+
+.ci-label {
+  font-size: 8px;
+  font-weight: 700;
+  color: var(--text-muted);
+  text-transform: uppercase;
+}
+
+.ci-val {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: 700;
+  color: var(--text-ink);
+}
+
+.action-resources-needed {
+  font-size: 10px;
+  color: var(--text-muted);
+  line-height: 1.35;
+  margin-top: 2px;
+}
+
+/* ==========================================================================
    Responsive Adaptations
    ========================================================================== */
 @media (max-width: 900px) {

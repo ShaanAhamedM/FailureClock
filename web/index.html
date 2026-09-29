@@ -48,7 +48,11 @@
         </button>
         <button class="nav-segment-btn" data-drawer="timeline">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"></line><line x1="12" y1="20" x2="12" y2="4"></line><line x1="6" y1="20" x2="6" y2="14"></line></svg>
-          <span>Failure Sequence</span>
+          <span>Sequence</span>
+        </button>
+        <button class="nav-segment-btn" data-drawer="keystones">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path><polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline><line x1="12" y1="22.08" x2="12" y2="12"></line></svg>
+          <span>Keystones</span>
         </button>
         <button class="nav-segment-btn" data-drawer="timemachine">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 8 14"></polyline></svg>
@@ -57,6 +61,10 @@
         <button class="nav-segment-btn" data-drawer="council">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M22 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
           <span>Crisis Council</span>
+        </button>
+        <button class="nav-segment-btn" data-drawer="redteam">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon></svg>
+          <span>Red Team</span>
         </button>
       </nav>
 
@@ -240,16 +248,47 @@
           </div>
         </section>
 
-        <!-- SECTION 4: TIME MACHINE (WHAT-IF) -->
+        <!-- SECTION 4: KEYSTONES & SHAPLEY BLAME GRAPH (F6) -->
+        <section id="paneKeystones" class="drawer-pane">
+          <div class="keystone-hero-box">
+            <div class="keystone-hero-title">Keystone Infrastructure Finder</div>
+            <div class="keystone-hero-desc">Single points of failure whose collapse triggers the largest regional cascade. Ranked by systemic reach across power and transport.</div>
+          </div>
+          
+          <div class="keystone-subheading">Top Critical Bottlenecks</div>
+          <div id="keystonesListContainer" class="cards-stack">
+            <!-- Dynamically populated keystone cards -->
+          </div>
+
+          <div class="keystone-subheading" style="margin-top: 18px;">Hospital Darkness Attribution (Shapley Blame)</div>
+          <div class="shapley-card">
+            <div class="shapley-header">
+              <div class="shapley-target-name" id="shapleyTargetFacility">District Headquarter Hospital (DHH Puri)</div>
+              <div class="shapley-risk-badge" id="shapleyTotalRisk">82.5% Outage Risk</div>
+            </div>
+            <div class="shapley-desc">Mathematical attribution of outage causality using cooperative game theory:</div>
+            <div id="shapleyAttributionsContainer" class="shapley-attributions-list">
+              <!-- Dynamically populated Shapley bars -->
+            </div>
+          </div>
+        </section>
+
+        <!-- SECTION 5: TIME MACHINE (WHAT-IF) -->
         <section id="paneTimemachine" class="drawer-pane">
           <div class="timemachine-hero">
             <div class="tm-description">
               Select pre-landfall interventions to fork a counterfactual timeline. Computed using <b>Common Random Numbers</b> for exact causality.
             </div>
-            <button id="btnRunFork" class="btn-fork-timeline">
-              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="16 3 21 3 21 8"></polyline><line x1="4" y1="20" x2="21" y2="3"></line><polyline points="21 16 21 21 16 21"></polyline><line x1="15" y1="15" x2="21" y2="21"></line><line x1="4" y1="4" x2="9" y2="9"></line></svg>
-              <span>Compute Forked Timeline</span>
-            </button>
+            <div class="whatif-controls-row">
+              <button id="btnRunFork" class="btn-fork-timeline">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="16 3 21 3 21 8"></polyline><line x1="4" y1="20" x2="21" y2="3"></line><polyline points="21 16 21 21 16 21"></polyline><line x1="15" y1="15" x2="21" y2="21"></line><line x1="4" y1="4" x2="9" y2="9"></line></svg>
+                <span>Compute Forked Timeline</span>
+              </button>
+              <label class="toggle-map-preview" title="Show counterfactual asset statuses on the map">
+                <input type="checkbox" id="chkShowBranchOnMap">
+                <span>View on Map</span>
+              </label>
+            </div>
           </div>
 
           <div class="whatif-interventions-checklist" id="whatifOptionsContainer">
@@ -267,7 +306,7 @@
           </div>
         </section>
 
-        <!-- SECTION 5: CRISIS COUNCIL (SITUATION ROOM) -->
+        <!-- SECTION 6: CRISIS COUNCIL (SITUATION ROOM) -->
         <section id="paneCouncil" class="drawer-pane">
           <div class="council-memorandum-header">
             <div class="council-seal">SITUATION ROOM MEMORANDUM</div>
@@ -282,6 +321,40 @@
           <div class="council-transcript-block">
             <div class="block-heading">Grounded Stakeholder Deliberation</div>
             <div id="councilChatContainer" class="deliberation-stream"></div>
+          </div>
+        </section>
+
+        <!-- SECTION 7: RED TEAM ADVERSARIAL STRESS TEST (F3) -->
+        <section id="paneRedteam" class="drawer-pane">
+          <div class="redteam-hero-box">
+            <div class="redteam-status-row">
+              <div>
+                <div class="redteam-title">Adversarial Storm Stress Test</div>
+                <div class="redteam-desc">Category 5 worst-case angle with peak storm surge targeting Puri coastal arteries.</div>
+              </div>
+              <button id="btnRunRedTeam" class="btn-run-redteam">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon></svg>
+                <span>Run Stress Test</span>
+              </button>
+            </div>
+          </div>
+
+          <div class="redteam-score-card">
+            <div class="score-meta">
+              <span class="score-label">Plan Robustness Score</span>
+              <span class="score-subtext">Survival rate under adversarial track</span>
+            </div>
+            <div class="score-number" id="redteamScore">--%</div>
+          </div>
+
+          <div class="redteam-subheading">Adversarial Findings</div>
+          <div id="redteamFindingsContainer" class="redteam-findings-list">
+            <!-- Dynamically populated findings -->
+          </div>
+
+          <div class="redteam-subheading" style="margin-top: 18px;">Facility Survival Breakdown</div>
+          <div id="redteamFacilityBreakdown" class="facility-breakdown-table">
+            <!-- Dynamically populated facility rows -->
           </div>
         </section>
 

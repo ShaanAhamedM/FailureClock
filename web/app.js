@@ -18,7 +18,11 @@ const STATE = {
   metrics: null,
   actions: [],
   councilData: null,
+  keystonesData: null,
+  redteamData: null,
+  doomsdayBoard: [],
   whatifData: null,
+  showBranchOnMap: false,
   map: null,
   assetMarkers: {},
   roadPolylines: {},
@@ -172,6 +176,11 @@ function switchDrawerPane(paneName) {
       title: "Asset Intelligence",
       sub: "Causal dependency chain & outage probability",
     },
+    keystones: {
+      id: "paneKeystones",
+      title: "Keystone Infrastructure",
+      sub: "Top systemic single points of failure & Shapley blame",
+    },
     timemachine: {
       id: "paneTimemachine",
       title: "Time Machine (What-If)",
@@ -181,6 +190,11 @@ function switchDrawerPane(paneName) {
       id: "paneCouncil",
       title: "Crisis Council Memorandum",
       sub: "Inter-agency deliberation & synthesized action orders",
+    },
+    redteam: {
+      id: "paneRedteam",
+      title: "Red Team Stress Test",
+      sub: "Adversarial Category 5 track & plan robustness score",
     },
   };
 
@@ -225,11 +239,13 @@ async function loadScenario(scenarioId) {
   STATE.scenarioId = scenarioId;
 
   try {
-    const [assetsRes, graphRes, actionsRes, councilRes] = await Promise.all([
+    const [assetsRes, graphRes, actionsRes, councilRes, keystonesRes, doomsdayRes] = await Promise.all([
       fetch(`${API_BASE}/api/scenario/${scenarioId}/assets`),
       fetch(`${API_BASE}/api/graph`),
       fetch(`${API_BASE}/api/scenario/${scenarioId}/actions`),
       fetch(`${API_BASE}/api/scenario/${scenarioId}/crisis-council`),
+      fetch(`${API_BASE}/api/scenario/${scenarioId}/keystones`),
+      fetch(`${API_BASE}/api/scenario/${scenarioId}/doomsday?current_time_h=${STATE.currentTimeH}`),
     ]);
 
     if (!assetsRes.ok || !graphRes.ok || !actionsRes.ok || !councilRes.ok) {
@@ -244,6 +260,13 @@ async function loadScenario(scenarioId) {
     STATE.graph = await graphRes.json();
     STATE.actions = await actionsRes.json();
     STATE.councilData = await councilRes.json();
+    if (keystonesRes.ok) {
+      STATE.keystonesData = await keystonesRes.json();
+    }
+    if (doomsdayRes.ok) {
+      const dd = await doomsdayRes.json();
+      STATE.doomsdayBoard = dd.actions_board || [];
+    }
 
     // Dynamically set slider bounds
     const slider = document.getElementById("timeSlider");
@@ -263,7 +286,9 @@ async function loadScenario(scenarioId) {
     renderMap();
     renderActions();
     renderFailureSequence();
+    renderKeystones();
     renderCouncil();
+    renderRedTeamInitial();
     renderTimeMachineOptions();
     updateTimeDisplay();
     updateStateAtTime(STATE.currentTimeH);
@@ -438,17 +463,26 @@ function updateStateAtTime(timeH) {
 
   Object.entries(STATE.scenarioAssets).forEach(([aid, dist]) => {
     let state = "OPERATING";
-    const timeline = dist.state_timeline_p50 || [];
-    const match = timeline.find((pt) => Math.abs(pt[0] - timeH) < 0.05);
-    if (match) {
-      state = match[1];
-    } else {
-      let lastKnown = "OPERATING";
-      for (const [t, s] of timeline) {
-        if (t <= timeH) lastKnown = s;
-        else break;
+    if (STATE.showBranchOnMap && STATE.whatifData && STATE.whatifData.branch_assets && STATE.whatifData.branch_assets[aid]) {
+      const bAsset = STATE.whatifData.branch_assets[aid];
+      if (bAsset.p50_fail_time_h === null || timeH < bAsset.p50_fail_time_h) {
+        state = "OPERATING";
+      } else {
+        state = "FAILED";
       }
-      state = lastKnown;
+    } else {
+      const timeline = dist.state_timeline_p50 || [];
+      const match = timeline.find((pt) => Math.abs(pt[0] - timeH) < 0.05);
+      if (match) {
+        state = match[1];
+      } else {
+        let lastKnown = "OPERATING";
+        for (const [t, s] of timeline) {
+          if (t <= timeH) lastKnown = s;
+          else break;
+        }
+        state = lastKnown;
+      }
     }
 
     if (dist.type === "ROAD_SEGMENT") {
@@ -472,6 +506,8 @@ function updateStateAtTime(timeH) {
     else if (state === "FAILED") countFa++;
   });
 
+  updateFailureSequenceStatus(timeH);
+
   // Re-apply selection highlight if active
   if (STATE.selectedAssetId && STATE.assetMarkers[STATE.selectedAssetId]) {
     const marker = STATE.assetMarkers[STATE.selectedAssetId];
@@ -479,6 +515,37 @@ function updateStateAtTime(timeH) {
     if (el) {
       const badge = el.querySelector(".node-badge-v2");
       if (badge) badge.classList.add("is-selected");
+    }
+  }
+
+  // Update live state in detail card if currently open
+  if (STATE.selectedAssetId && STATE.scenarioAssets && STATE.scenarioAssets[STATE.selectedAssetId]) {
+    let liveState = "OPERATING";
+    if (STATE.showBranchOnMap && STATE.whatifData && STATE.whatifData.branch_assets && STATE.whatifData.branch_assets[STATE.selectedAssetId]) {
+      const bAsset = STATE.whatifData.branch_assets[STATE.selectedAssetId];
+      if (bAsset.p50_fail_time_h === null || timeH < bAsset.p50_fail_time_h) {
+        liveState = "OPERATING";
+      } else {
+        liveState = "FAILED";
+      }
+    } else {
+      const tl = STATE.scenarioAssets[STATE.selectedAssetId].state_timeline_p50 || [];
+      const match = tl.find((pt) => Math.abs(pt[0] - timeH) < 0.05);
+      if (match) {
+        liveState = match[1];
+      } else {
+        let last = "OPERATING";
+        for (const [t, s] of tl) {
+          if (t <= timeH) last = s;
+          else break;
+        }
+        liveState = last;
+      }
+    }
+    const stateBadge = document.getElementById("detailCurrentState");
+    if (stateBadge) {
+      stateBadge.textContent = liveState.replace(/_/g, " ");
+      stateBadge.className = `asset-status-pill ${liveState.toLowerCase()} ${liveState === "ON_BACKUP" ? "backup" : ""}`;
     }
   }
 
@@ -627,14 +694,19 @@ function renderActions() {
   if (!container) return;
   container.innerHTML = "";
 
-  if (!STATE.actions || STATE.actions.length === 0) {
+  const actions = (STATE.doomsdayBoard && STATE.doomsdayBoard.length > 0)
+    ? STATE.doomsdayBoard
+    : (STATE.actions || []);
+
+  if (actions.length === 0) {
     container.innerHTML = `<div class="empty-state-notice"><p>No interventions configured for this scenario.</p></div>`;
     return;
   }
 
-  STATE.actions.forEach((act, idx) => {
-    const hoursRemaining = act.deadline_h - STATE.currentTimeH;
-    const isExpired = hoursRemaining <= 0;
+  actions.forEach((act, idx) => {
+    const deadlineH = act.deadline_hour_rel !== undefined ? act.deadline_hour_rel : act.deadline_h;
+    const hoursRemaining = act.hours_remaining !== undefined ? act.hours_remaining : (deadlineH - STATE.currentTimeH);
+    const isExpired = act.is_expired !== undefined ? act.is_expired : (hoursRemaining <= 0);
     const isUrgent = hoursRemaining > 0 && hoursRemaining <= 3.0;
 
     let deadlineClass = "";
@@ -648,22 +720,54 @@ function renderActions() {
     }
 
     // Route passability check with epsilon tolerance
-    const routeId = (act.route_asset_ids && act.route_asset_ids.length > 0) ? act.route_asset_ids[0] : null;
+    const routeIds = act.bottleneck_routes || act.route_asset_ids || [];
     let routeStatus = "Direct Access";
     let routeClass = "open";
 
-    if (routeId && STATE.scenarioAssets && STATE.scenarioAssets[routeId]) {
+    if (routeIds.length > 0 && STATE.scenarioAssets) {
+      const routeId = routeIds[0];
       const routeAsset = STATE.scenarioAssets[routeId];
-      const match = (routeAsset.state_timeline_p50 || []).find(
-        (pt) => Math.abs(pt[0] - STATE.currentTimeH) < 0.05
-      );
-      if (match && match[1] === "FAILED") {
-        routeStatus = `${routeAsset.name} (FLOODED)`;
-        routeClass = "flooded";
-      } else {
-        routeStatus = `${routeAsset.name} (Clear)`;
-        routeClass = "open";
+      if (routeAsset) {
+        const match = (routeAsset.state_timeline_p50 || []).find(
+          (pt) => Math.abs(pt[0] - STATE.currentTimeH) < 0.05
+        );
+        if (match && match[1] === "FAILED") {
+          routeStatus = `${routeAsset.name} (FLOODED)`;
+          routeClass = "flooded";
+        } else {
+          routeStatus = `${routeAsset.name} (Passable)`;
+          routeClass = "open";
+        }
       }
+    }
+
+    // Confidence Interval
+    let ciHtml = "";
+    if (act.confidence_interval) {
+      const ci = act.confidence_interval;
+      const fmt = (t) => (t !== undefined ? `T${t >= 0 ? "+" : ""}${t.toFixed(1)}h` : "--");
+      ciHtml = `
+        <div class="confidence-interval-grid">
+          <div class="ci-col">
+            <span class="ci-label">P10 Conservative</span>
+            <span class="ci-val">${fmt(ci.conservative_p10_h)}</span>
+          </div>
+          <div class="ci-col">
+            <span class="ci-label">P50 Expected</span>
+            <span class="ci-val">${fmt(ci.expected_p50_h)}</span>
+          </div>
+          <div class="ci-col">
+            <span class="ci-label">P90 Optimistic</span>
+            <span class="ci-val">${fmt(ci.optimistic_p90_h)}</span>
+          </div>
+        </div>
+      `;
+    }
+
+    // Resources needed
+    let resourcesHtml = "";
+    if (act.resources_needed) {
+      resourcesHtml = `<div class="action-resources-needed"><b>Logistics:</b> ${act.resources_needed}</div>`;
     }
 
     const card = document.createElement("div");
@@ -673,7 +777,9 @@ function renderActions() {
         <div class="action-card-title">#${idx + 1} ${act.title}</div>
         <div class="deadline-pill ${deadlineClass}">${deadlineText}</div>
       </div>
-      <div class="action-card-desc">${act.description}</div>
+      <div class="action-card-desc">${act.benefit_summary || act.description}</div>
+      ${ciHtml}
+      ${resourcesHtml}
       <div class="action-card-meta">
         <span class="action-route-status ${routeClass}">
           <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"></path><line x1="4" y1="22" x2="4" y2="15"></line></svg>
@@ -724,8 +830,10 @@ function renderFailureSequence() {
 
   failingAssets.forEach((asset) => {
     const sign = asset.p50_fail_time_h >= 0 ? "+" : "";
+    const isPast = asset.p50_fail_time_h <= STATE.currentTimeH;
     const item = document.createElement("div");
-    item.className = "seq-item";
+    item.className = `seq-item ${isPast ? "is-failed" : "is-pending"}`;
+    item.dataset.failTime = asset.p50_fail_time_h;
     item.innerHTML = `
       <div class="seq-header">
         <span class="seq-time-badge">T${sign}${asset.p50_fail_time_h.toFixed(1)}h</span>
@@ -738,6 +846,161 @@ function renderFailureSequence() {
     item.addEventListener("click", () => inspectAsset(asset.asset_id));
     container.appendChild(item);
   });
+}
+
+function updateFailureSequenceStatus(timeH) {
+  document.querySelectorAll(".seq-item").forEach((item) => {
+    const failT = parseFloat(item.dataset.failTime);
+    if (!isNaN(failT)) {
+      if (failT <= timeH) {
+        item.classList.add("is-failed");
+        item.classList.remove("is-pending");
+      } else {
+        item.classList.remove("is-failed");
+        item.classList.add("is-pending");
+      }
+    }
+  });
+}
+
+// ==========================================================================
+// Keystones & Shapley Blame Graph Pane (F6)
+// ==========================================================================
+function renderKeystones() {
+  if (!STATE.keystonesData) return;
+
+  const listContainer = document.getElementById("keystonesListContainer");
+  const blameContainer = document.getElementById("shapleyAttributionsContainer");
+
+  if (listContainer && STATE.keystonesData.top_keystones) {
+    listContainer.innerHTML = "";
+    STATE.keystonesData.top_keystones.forEach((k, idx) => {
+      const card = document.createElement("div");
+      card.className = "keystone-card";
+      card.innerHTML = `
+        <div class="keystone-card-top">
+          <span class="keystone-rank-badge">#${idx + 1} KEYSTONE</span>
+          <span class="keystone-score-badge">Impact Score: ${k.keystone_score}</span>
+        </div>
+        <div class="keystone-name">${k.name}</div>
+        <div class="keystone-metrics-row">
+          <span>Downstream Reach: <b>${k.downstream_dependent_count} assets</b></span>
+          <span>Prevented Loss: <b>${k.prevented_loss_points} pts</b></span>
+        </div>
+      `;
+      card.addEventListener("click", () => inspectAsset(k.asset_id));
+      listContainer.appendChild(card);
+    });
+  }
+
+  if (blameContainer && STATE.keystonesData.shapley_blame) {
+    blameContainer.innerHTML = "";
+    const blame = STATE.keystonesData.shapley_blame;
+    const targetEl = document.getElementById("shapleyTargetFacility");
+    const riskEl = document.getElementById("shapleyTotalRisk");
+    if (targetEl) targetEl.textContent = blame.facility_name;
+    if (riskEl) riskEl.textContent = `${blame.total_outage_risk_pct}% Outage Risk`;
+
+    (blame.attributions || []).forEach((attr) => {
+      const item = document.createElement("div");
+      item.className = "shapley-item";
+      item.innerHTML = `
+        <div class="shapley-item-top">
+          <span>${attr.cause}</span>
+          <span class="shapley-pct">${attr.shapley_pct}% Blame</span>
+        </div>
+        <div class="shapley-bar-track">
+          <div class="shapley-bar-fill" style="width: ${attr.shapley_pct}%"></div>
+        </div>
+        <div class="shapley-explanation">${attr.explanation}</div>
+      `;
+      blameContainer.appendChild(item);
+    });
+  }
+}
+
+// ==========================================================================
+// Red Team Adversarial Stress Test Pane (F3)
+// ==========================================================================
+function renderRedTeamInitial() {
+  const btn = document.getElementById("btnRunRedTeam");
+  if (btn && !btn.dataset.initialized) {
+    btn.dataset.initialized = "true";
+    btn.addEventListener("click", runRedTeamTest);
+  }
+
+  if (STATE.redteamData) {
+    displayRedTeamResults(STATE.redteamData);
+  } else {
+    runRedTeamTest();
+  }
+}
+
+async function runRedTeamTest() {
+  const btn = document.getElementById("btnRunRedTeam");
+  if (btn) btn.innerHTML = `<span>Simulating Storm...</span>`;
+
+  try {
+    const res = await fetch(`${API_BASE}/api/scenario/${STATE.scenarioId}/redteam`, {
+      method: "POST",
+    });
+    if (!res.ok) throw new Error("Red team simulation failed");
+    const data = await res.json();
+    STATE.redteamData = data;
+    displayRedTeamResults(data);
+  } catch (err) {
+    console.error("Red team failed:", err);
+  } finally {
+    if (btn) {
+      btn.innerHTML = `
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon></svg>
+        <span>Run Stress Test</span>
+      `;
+    }
+  }
+}
+
+function displayRedTeamResults(data) {
+  const scoreEl = document.getElementById("redteamScore");
+  const findingsContainer = document.getElementById("redteamFindingsContainer");
+  const facilityContainer = document.getElementById("redteamFacilityBreakdown");
+
+  if (scoreEl) {
+    scoreEl.textContent = `${data.plan_robustness_score.toFixed(1)}%`;
+    if (data.plan_robustness_score >= 50) {
+      scoreEl.classList.add("robust");
+    } else {
+      scoreEl.classList.remove("robust");
+    }
+  }
+
+  if (findingsContainer) {
+    findingsContainer.innerHTML = "";
+    (data.adversarial_findings || []).forEach((f) => {
+      const card = document.createElement("div");
+      card.className = "finding-card";
+      card.textContent = f;
+      findingsContainer.appendChild(card);
+    });
+  }
+
+  if (facilityContainer) {
+    facilityContainer.innerHTML = "";
+    (data.facility_breakdown || []).forEach((fac) => {
+      const row = document.createElement("div");
+      row.className = "facility-row";
+      const isRobust = fac.robust;
+      row.innerHTML = `
+        <span class="facility-row-name">${fac.name}</span>
+        <span class="facility-row-status ${isRobust ? "secure" : "vulnerable"}">
+          ${isRobust ? "SURVIVED" : `OUTAGE (${fac.fail_risk_under_redteam_pct}%)`}
+        </span>
+      `;
+      row.style.cursor = "pointer";
+      row.addEventListener("click", () => inspectAsset(fac.facility_id));
+      facilityContainer.appendChild(row);
+    });
+  }
 }
 
 // ==========================================================================
@@ -830,14 +1093,26 @@ async function inspectAsset(assetId) {
     }
 
     // Dependency network
-    document.getElementById("detailPowerSrc").textContent =
-      data.upstream_power_nodes?.join(", ") || "Autonomous / Dedicated Source";
+    if (data.type === "ROAD_SEGMENT") {
+      const len = data.node_attributes?.length_km || 3.2;
+      const windLimit = data.node_attributes?.debris_wind_threshold_ms || 34.0;
+      const floodCutoff = data.node_attributes?.passability_threshold_m || 0.30;
+      document.getElementById("detailPowerSrc").textContent = `Length: ${len} km · Debris Gust Limit: ${windLimit} m/s`;
+      document.getElementById("detailResupplyPath").textContent = `Passability Cutoff: Flood Depth >= ${floodCutoff}m`;
+    } else {
+      const pwr = data.upstream_power_nodes?.length > 0
+        ? data.upstream_power_nodes.join(", ")
+        : (data.node_attributes?.generator_present ? "On-Site Generator + Feeder" : "Dedicated Grid");
+      document.getElementById("detailPowerSrc").textContent = pwr;
 
-    const routeStr =
-      data.resupply_routes?.length > 0
+      const fuelHours = data.node_attributes?.fuel_hours;
+      const tankCap = data.node_attributes?.tank_capacity_l;
+      const routeStr = data.resupply_routes?.length > 0
         ? `${data.resupply_routes[0].depot_id} via ${data.resupply_routes[0].road_path.join(" → ")}`
-        : "Direct / Not applicable";
-    document.getElementById("detailResupplyPath").textContent = routeStr;
+        : "Direct Access";
+      const fuelInfo = fuelHours ? ` · Autonomy: ${fuelHours}h (${tankCap || 800}L)` : "";
+      document.getElementById("detailResupplyPath").textContent = `${routeStr}${fuelInfo}`;
+    }
 
   } catch (err) {
     console.error("Error inspecting asset:", err);
@@ -892,8 +1167,21 @@ function renderTimeMachineOptions() {
         <div class="whatif-desc">${act.description}</div>
       </div>
     `;
+    const cb = label.querySelector(".whatif-checkbox");
+    if (cb) {
+      cb.addEventListener("change", () => runTimeMachineFork());
+    }
     container.appendChild(label);
   });
+
+  const chkMap = document.getElementById("chkShowBranchOnMap");
+  if (chkMap && !chkMap.dataset.bound) {
+    chkMap.dataset.bound = "true";
+    chkMap.addEventListener("change", (e) => {
+      STATE.showBranchOnMap = e.target.checked;
+      updateStateAtTime(STATE.currentTimeH);
+    });
+  }
 
   runTimeMachineFork();
 }
