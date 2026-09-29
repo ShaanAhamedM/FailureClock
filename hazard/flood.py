@@ -29,18 +29,22 @@ class PluvialFloodModel:
         Estimate rain rate (mm/hr) using tropical cyclone radial rainfall profiles.
         Heavy inner eyewall core rain + outer rain bands.
         """
+        if v_max_knots <= 10.0:
+            return 0.0
+
         # Peak core rainfall scale (typically 30-70 mm/hr for severe cyclonic storms)
-        peak_rate = 20.0 + 0.35 * v_max_knots
+        intensity_factor = min(v_max_knots / 64.0, 1.8)
+        peak_rate = 15.0 + 0.35 * v_max_knots
 
         if dist_to_center_km <= rmw_km:
             rate = peak_rate * (0.6 + 0.4 * (dist_to_center_km / max(rmw_km, 1.0)))
         elif dist_to_center_km <= rmw_km * 3.0:
-            rate = peak_rate * math.exp(-0.8 * ((dist_to_center_km - rmw_km) / rmw_km))
+            rate = peak_rate * math.exp(-0.8 * ((dist_to_center_km - rmw_km) / max(rmw_km, 1.0)))
         else:
             outer_dist = dist_to_center_km - 3.0 * rmw_km
-            rate = max(15.0 * math.exp(-outer_dist / 60.0), 0.0)
+            rate = max(15.0 * intensity_factor * math.exp(-outer_dist / 60.0), 0.0)
 
-        return float(rate)
+        return float(max(rate, 0.0))
 
     def calculate_ponding_depth_m(
         self,

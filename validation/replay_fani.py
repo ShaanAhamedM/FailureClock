@@ -109,6 +109,13 @@ def run_validation_evaluation():
     print(f"  • Total Ground Truth Points:    {len(ground_truth)} (Puri District, Fani 2019)")
     print("=" * 70)
 
+    return {
+        "recall": recall,
+        "mae": mae,
+        "rank_corr": rank_corr,
+        "ground_truth_count": len(ground_truth),
+    }
+
 
 if __name__ == "__main__":
     run_validation_evaluation()

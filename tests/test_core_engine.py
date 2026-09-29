@@ -32,6 +32,13 @@ def test_wind_model():
     gust_eyewall = model.calculate_peak_gust(19.8, 85.8, 19.8, 85.8 + 0.33, p_c=940.0, v_max_knots=100.0, rmw_km=35.0)
     assert gust_eyewall > 35.0
 
+    # Boundary tests: Eye center r=0, extreme distance r=2000km, calm, extreme Cat 5
+    assert model.calculate_peak_gust(19.8, 85.8, 19.8, 85.8, 920.0, 130.0, 30.0) >= 0.0
+    assert model.calculate_peak_gust(19.8, 85.8, 0.0, 85.8, 920.0, 130.0, 30.0) >= 0.0
+    assert model.calculate_peak_gust(19.8, 85.8, 19.0, 85.0, 1013.0, 10.0, 30.0) >= 0.0
+    assert model.calculate_peak_gust(19.8, 85.8, 19.5, 85.5, 870.0, 200.0, 25.0) > 80.0
+    assert model.calculate_peak_gust(19.8, 85.8, 19.8, 85.8, 940.0, 100.0, 30.0, hours_since_landfall=24.0) >= 0.0
+
 
 def test_surge_model():
     surge = CoastalSurgeModel()
@@ -42,6 +49,12 @@ def test_surge_model():
     depth = surge.calculate_inundation_depth(asset_elevation_m=2.0, distance_to_coast_km=1.0, peak_coastal_surge_m=peak)
     assert depth > 0.0
 
+    # Extreme surge and negative elevation check
+    s_extreme = surge.calculate_peak_coastal_surge_m(880.0, 180.0, 20.0, 30.0, is_right_of_track=True)
+    assert s_extreme > 7.0
+    inund_subsea = surge.calculate_inundation_depth(asset_elevation_m=-1.0, distance_to_coast_km=0.5, peak_coastal_surge_m=4.0)
+    assert inund_subsea > 4.0
+
 
 def test_flood_model():
     flood = PluvialFloodModel()
@@ -51,6 +64,14 @@ def test_flood_model():
     passable, reason = flood.is_road_passable(flood_depth_m=0.45, wind_gust_ms=25.0)
     assert not passable
     assert reason == "FLOODED"
+
+    # Calm condition (zero wind) => zero rain
+    assert flood.rainfall_intensity_mm_per_hour(dist_to_center_km=500.0, v_max_knots=0.0) == 0.0
+
+    # Wind tree-fall road blockage
+    passable_wind, reason_wind = flood.is_road_passable(flood_depth_m=0.10, wind_gust_ms=45.0)
+    assert not passable_wind
+    assert "TREE_FALL" in reason_wind
 
 
 def test_dependency_graph():
