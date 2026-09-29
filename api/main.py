@@ -181,6 +181,7 @@ class WhatIfRequest(BaseModel):
 
 
 @app.post("/api/scenario/{scenario_id}/whatif")
+@app.post("/api/scenario/{scenario_id}/what-if")
 def run_whatif_branch(scenario_id: str, req: WhatIfRequest) -> Dict[str, Any]:
     """
     Time Machine (F1): Fork a new timeline with user-selected interventions.
@@ -317,6 +318,7 @@ class RedTeamRequest(BaseModel):
 
 
 @app.post("/api/scenario/{scenario_id}/redteam")
+@app.post("/api/scenario/{scenario_id}/red-team")
 def run_redteam_test(
     scenario_id: str,
     req: Optional[RedTeamRequest] = Body(default=None),
