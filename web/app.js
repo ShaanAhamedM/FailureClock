@@ -120,9 +120,9 @@ function renderMap() {
   nodes.filter((n) => n.type === "ROAD_SEGMENT").forEach((road) => {
     const coords = getRoadCoordinates(road.id, road.lat, road.lon);
     const poly = L.polyline(coords, {
-      color: "#ffffff",
-      weight: 3,
-      opacity: 0.85,
+      color: "#000000",
+      weight: 3.5,
+      opacity: 0.9,
     }).addTo(STATE.map);
 
     poly.bindTooltip(`<b>${road.name}</b>`, { sticky: true });
@@ -135,7 +135,7 @@ function renderMap() {
     const icon = createNodeIcon(node.type, "OPERATING");
     const marker = L.marker([node.lat, node.lon], { icon }).addTo(STATE.map);
 
-    marker.bindTooltip(`<b>${node.name}</b><br><span style="color:#888">${node.type}</span>`, {
+    marker.bindTooltip(`<b>${node.name}</b><br><span style="color:#666">${node.type}</span>`, {
       sticky: true,
     });
     marker.on("click", () => openAssetDetail(node.id));
@@ -212,9 +212,9 @@ function updateStateAtTime(timeH) {
       const poly = STATE.roadPolylines[aid];
       if (poly) {
         if (state === "FAILED") {
-          poly.setStyle({ color: "#555555", dashArray: "4, 6", weight: 2.5 });
+          poly.setStyle({ color: "#999999", dashArray: "4, 6", weight: 2.5 });
         } else {
-          poly.setStyle({ color: "#ffffff", dashArray: null, weight: 3 });
+          poly.setStyle({ color: "#000000", dashArray: null, weight: 3.5 });
         }
       }
     } else {
