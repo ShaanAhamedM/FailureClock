@@ -20,7 +20,7 @@
     <!-- Top Navigation Header -->
     <header class="top-nav">
       <div class="brand">
-        <div class="logo-icon">⏳</div>
+        <div class="logo-badge">FC</div>
         <div>
           <div class="logo-title">FAILURE CLOCK</div>
           <div class="logo-subtitle">Cyclone Infrastructure Cascade & Last-Safe-Minute Engine</div>
@@ -28,14 +28,14 @@
       </div>
 
       <div class="scenario-selector-container">
-        <label for="scenarioSelect">SCENARIO:</label>
+        <label for="scenarioSelect">SCENARIO</label>
         <select id="scenarioSelect" class="scenario-select">
-          <option value="fani_2019">🌀 Cyclone Fani (2019 Replay Validation)</option>
-          <option value="severe_cyclone_live" selected>⚠️ Live Forecast (Category 4 Approach)</option>
-          <option value="red_team_storm">🔴 Red Team Adversarial Stress Test</option>
+          <option value="fani_2019">Cyclone Fani (2019 Replay Validation)</option>
+          <option value="severe_cyclone_live" selected>Live Forecast (Category 4 Approach)</option>
+          <option value="red_team_storm">Red Team Adversarial Stress Test</option>
         </select>
         <button id="btnRunSim" class="btn-primary" title="Re-run Monte Carlo Simulation">
-          <span class="icon">⚡</span> Run Sim
+          Run Sim
         </button>
       </div>
 
@@ -44,11 +44,11 @@
           <span class="label">PEAK CLLI</span>
           <span class="val" id="metricPeakCLLI">--</span>
         </div>
-        <div class="metric-badge warning">
+        <div class="metric-badge">
           <span class="label">PATIENT-HRS AT RISK</span>
           <span class="val" id="metricPatientHours">--</span>
         </div>
-        <div class="metric-badge danger">
+        <div class="metric-badge">
           <span class="label">MAX OUTAGE RISK</span>
           <span class="val" id="metricOutagePct">--%</span>
         </div>
@@ -57,13 +57,13 @@
 
     <!-- Tab Bar -->
     <nav class="nav-tabs">
-      <button class="tab-btn active" data-tab="tab-map">🗺️ Command Map & Cascade</button>
-      <button class="tab-btn" data-tab="tab-doomsday">⏳ Last Safe Minute (F2)</button>
-      <button class="tab-btn" data-tab="tab-timemachine">🔀 Time Machine / What-If (F1)</button>
-      <button class="tab-btn" data-tab="tab-keystones">💎 Keystone & Shapley Blame (F6)</button>
-      <button class="tab-btn" data-tab="tab-council">🏛️ AI Crisis Council (F4)</button>
-      <button class="tab-btn" data-tab="tab-redteam">🔴 Red Team Stress Test (F3)</button>
-      <button class="tab-btn" data-tab="tab-assumptions">⚙️ Parameters & Fragility</button>
+      <button class="tab-btn active" data-tab="tab-map">Command Map & Cascade</button>
+      <button class="tab-btn" data-tab="tab-doomsday">Last Safe Minute (F2)</button>
+      <button class="tab-btn" data-tab="tab-timemachine">Time Machine (F1)</button>
+      <button class="tab-btn" data-tab="tab-keystones">Keystone & Shapley (F6)</button>
+      <button class="tab-btn" data-tab="tab-council">Crisis Council (F4)</button>
+      <button class="tab-btn" data-tab="tab-redteam">Red Team Test (F3)</button>
+      <button class="tab-btn" data-tab="tab-assumptions">Parameters & Fragility</button>
     </nav>
 
     <!-- Main Content Area -->
@@ -151,7 +151,7 @@
         <div class="feature-pane">
           <div class="pane-header">
             <div>
-              <h2>⏳ Last Safe Minute: Doomsday Countdown Board</h2>
+              <h2>Last Safe Minute (F2): Countdown Board</h2>
               <p class="subtitle">Live countdown to the latest moment each pre-landfall action can depart before routes submerge or block.</p>
             </div>
             <div class="doomsday-clock-header">
@@ -170,10 +170,10 @@
         <div class="feature-pane">
           <div class="pane-header">
             <div>
-              <h2>🔀 Time Machine: Branching Timelines</h2>
+              <h2>Time Machine (F1): Branching Timelines</h2>
               <p class="subtitle">Toggle pre-landfall interventions to fork an alternative future. Uses Common Random Numbers for exact causality.</p>
             </div>
-            <button id="btnRunWhatIf" class="btn-primary">⚡ Compute Forked Timeline</button>
+            <button id="btnRunWhatIf" class="btn-primary">Compute Forked Timeline</button>
           </div>
 
           <div class="time-machine-grid">
@@ -205,7 +205,7 @@
         <div class="feature-pane">
           <div class="pane-header">
             <div>
-              <h2>💎 Keystone Assets & Shapley Blame Attribution</h2>
+              <h2>Keystone Assets & Shapley Blame (F6)</h2>
               <p class="subtitle">Identifies high-leverage assets whose protection prevents major cascades, and mathematically apportions responsibility for outages.</p>
             </div>
           </div>
@@ -236,10 +236,10 @@
         <div class="feature-pane">
           <div class="pane-header">
             <div>
-              <h2>🏛️ Grounded AI Crisis Council</h2>
+              <h2>Grounded AI Crisis Council (F4)</h2>
               <p class="subtitle">Multi-stakeholder AI agents (Collector, Health, Power, Telecom, Roads) debating emergency trade-offs with verifiable simulation citations.</p>
             </div>
-            <button id="btnReconveneCouncil" class="btn-secondary">🔄 Reconvene Council</button>
+            <button id="btnReconveneCouncil" class="btn-secondary">Reconvene Council</button>
           </div>
 
           <div class="council-grid">
@@ -268,10 +268,10 @@
         <div class="feature-pane">
           <div class="pane-header">
             <div>
-              <h2>🔴 Red Team Storm: Adversarial Stress Test</h2>
+              <h2>Red Team Storm (F3): Adversarial Stress Test</h2>
               <p class="subtitle">Adversarially searches the storm parameter space to find the worst-case plausible cyclone that breaks your disaster plan.</p>
             </div>
-            <button id="btnRunRedTeam" class="btn-danger">⚡ Run Adversarial Test</button>
+            <button id="btnRunRedTeam" class="btn-danger">Run Adversarial Test</button>
           </div>
 
           <div class="redteam-grid">
@@ -299,7 +299,7 @@
         <div class="feature-pane">
           <div class="pane-header">
             <div>
-              <h2>⚙️ Engineering Assumptions & Provenance</h2>
+              <h2>Engineering Assumptions & Fragility</h2>
               <p class="subtitle">In accordance with Section 8.4 and Section 12.4: all assumed parameters are transparently stated and editable.</p>
             </div>
           </div>

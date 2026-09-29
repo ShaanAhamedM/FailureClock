@@ -87,9 +87,10 @@ function initMap() {
     zoomControl: true,
   });
 
-  // Dark basemap
-  L.tileLayer("https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png", {
-    attribution: '&copy; <a href="https://carto.com/">CARTO</a> | Failure Clock',
+  // OpenStreetMap with grayscale CSS filter (no API keys, zero 403 errors)
+  L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> | Failure Clock',
+    subdomains: ['a', 'b', 'c'],
     maxZoom: 18,
   }).addTo(STATE.map);
 }
@@ -144,15 +145,14 @@ function renderMapElements() {
 
   const nodes = STATE.graph.nodes;
 
-  // Render Road Segments
+  // Render Road Segments (Minimalist white solid / dashed lines)
   const roadNodes = nodes.filter((n) => n.type === "ROAD_SEGMENT");
   roadNodes.forEach((road) => {
-    // Generate representative polyline for road
     const coords = getRoadCoordinates(road.id, road.lat, road.lon);
     const poly = L.polyline(coords, {
-      color: "#10b981",
-      weight: 5,
-      opacity: 0.85,
+      color: "#ffffff",
+      weight: 3.5,
+      opacity: 0.9,
     }).addTo(STATE.map);
 
     poly.bindTooltip(`<b>${road.name}</b><br>Lifeline Corridor (Passable)`, { sticky: true });
@@ -160,24 +160,24 @@ function renderMapElements() {
     STATE.roadPolylines[road.id] = poly;
   });
 
-  // Render Infrastructure Nodes
+  // Render Infrastructure Nodes (Minimalist monochrome badges)
   nodes.filter((n) => n.type !== "ROAD_SEGMENT").forEach((node) => {
     const icon = getAssetCustomIcon(node.type, "OPERATING");
     const marker = L.marker([node.lat, node.lon], { icon }).addTo(STATE.map);
 
-    marker.bindTooltip(`<b>${node.name}</b><br><span style="color:#38bdf8">${node.type}</span>`, {
+    marker.bindTooltip(`<b>${node.name}</b><br><span style="color:#a3a3a3">${node.type}</span>`, {
       sticky: true,
     });
     marker.on("click", () => openAssetModal(node.id));
     STATE.assetMarkers[node.id] = marker;
   });
 
-  // Render Storm Eye Marker
+  // Render Storm Eye Marker (Minimalist rotating target glyph)
   const stormIcon = L.divIcon({
-    className: "storm-eye-icon",
-    html: `<div style="font-size:32px; filter:drop-shadow(0 0 10px #ef4444); animation:spin 4s linear infinite;">🌀</div>`,
-    iconSize: [36, 36],
-    iconAnchor: [18, 18],
+    className: "custom-storm-icon",
+    html: `<div class="storm-eye-marker">◎</div>`,
+    iconSize: [40, 40],
+    iconAnchor: [20, 20],
   });
   STATE.stormMarker = L.marker([19.78, 85.80], { icon: stormIcon }).addTo(STATE.map);
   STATE.stormMarker.bindTooltip("<b>Cyclone Core / Eye</b><br>Max Sustained Winds: 115 knots", { sticky: true });
@@ -206,45 +206,28 @@ function getRoadCoordinates(roadId, centerLat, centerLon) {
 }
 
 function getAssetCustomIcon(type, state) {
-  let emoji = "🏥";
-  if (type === "SUBSTATION") emoji = "⚡";
-  if (type === "FEEDER") emoji = "🔌";
-  if (type === "TOWER") emoji = "📡";
-  if (type === "WATER_PUMP") emoji = "💧";
-  if (type === "DEPOT") emoji = "⛽";
+  let label = "H";
+  if (type === "SUBSTATION") label = "SS";
+  if (type === "FEEDER") label = "FD";
+  if (type === "TOWER") label = "TX";
+  if (type === "WATER_PUMP") label = "WP";
+  if (type === "DEPOT") label = "DP";
 
-  let color = "#10b981"; // OPERATING (green)
-  let halo = "rgba(16, 185, 129, 0.4)";
-  if (state === "ON_BACKUP") {
-    color = "#f59e0b"; // amber
-    halo = "rgba(245, 158, 11, 0.5)";
-  } else if (state === "FAILED") {
-    color = "#ef4444"; // red
-    halo = "rgba(239, 68, 68, 0.6)";
-  }
+  let stateClass = "operating";
+  if (state === "ON_BACKUP") stateClass = "backup";
+  else if (state === "FAILED") stateClass = "failed";
 
   const html = `
-    <div style="
-      background: #0f172a;
-      border: 2px solid ${color};
-      box-shadow: 0 0 10px ${halo};
-      width: 32px;
-      height: 32px;
-      border-radius: 50%;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 15px;
-      cursor: pointer;
-      transition: all 0.2s;
-    ">${emoji}</div>
+    <div class="node-badge ${stateClass}" title="${type}: ${state}">
+      ${label}
+    </div>
   `;
 
   return L.divIcon({
     className: "custom-asset-icon",
     html,
-    iconSize: [32, 32],
-    iconAnchor: [16, 16],
+    iconSize: [30, 30],
+    iconAnchor: [15, 15],
   });
 }
 
@@ -267,11 +250,11 @@ function updateMapStateAtTime(timeH) {
       const poly = STATE.roadPolylines[assetId];
       if (poly) {
         if (currentState === "FAILED") {
-          poly.setStyle({ color: "#ef4444", dashArray: "6, 8", weight: 6 });
-          poly.setTooltipContent(`<b>${dist.name}</b><br><span style="color:#ef4444">IMPASSABLE / SUBMERGED</span>`);
+          poly.setStyle({ color: "#525252", dashArray: "4, 6", weight: 2.5 });
+          poly.setTooltipContent(`<b>${dist.name}</b><br><span style="color:#a3a3a3">IMPASSABLE / SUBMERGED</span>`);
         } else {
-          poly.setStyle({ color: "#10b981", dashArray: null, weight: 5 });
-          poly.setTooltipContent(`<b>${dist.name}</b><br><span style="color:#10b981">PASSABLE</span>`);
+          poly.setStyle({ color: "#ffffff", dashArray: null, weight: 3.5 });
+          poly.setTooltipContent(`<b>${dist.name}</b><br><span style="color:#ffffff">PASSABLE</span>`);
         }
       }
     } else {
@@ -352,7 +335,7 @@ function initPlaybackControls() {
 
 function startPlayback() {
   STATE.isPlaying = true;
-  document.getElementById("btnPlayPause").textContent = "⏸ Pause";
+  document.getElementById("btnPlayPause").textContent = "Pause";
   STATE.playInterval = setInterval(() => {
     if (STATE.currentTimeH >= 36) {
       pausePlayback();
@@ -367,7 +350,7 @@ function startPlayback() {
 
 function pausePlayback() {
   STATE.isPlaying = false;
-  document.getElementById("btnPlayPause").textContent = "▶ Play Cascade";
+  document.getElementById("btnPlayPause").textContent = "Play";
   clearInterval(STATE.playInterval);
 }
 
@@ -380,9 +363,9 @@ function updateTimeDisplay() {
 
   let phase = "PRE-LANDFALL WARNING (T-24h to T-12h)";
   if (t >= -12 && t < -2) phase = "PRE-LANDFALL PREPARATION (T-12h to T-2h)";
-  else if (t >= -2 && t <= 4) phase = "⚠️ EYEWALL LANDFALL WINDOW (T-2h to T+4h)";
-  else if (t > 4 && t <= 20) phase = "POST-LANDFALL SEVERE CASCADE (T+4h to T+20h)";
-  else if (t > 20) phase = "RECOVERY & RESTORATION PHASE (T+24h+)";
+  else if (t >= -2 && t <= 4) phase = "EYEWALL LANDFALL WINDOW (T-2h to T+4h)";
+  else if (t > 4 && t <= 20) phase = "POST-LANDFALL CASCADE (T+4h to T+20h)";
+  else if (t > 20) phase = "RECOVERY & RESTORATION (T+24h+)";
 
   document.getElementById("phaseIndicator").textContent = phase;
 }
@@ -404,20 +387,22 @@ function renderCLLIChart() {
         {
           label: "P50 CLLI (Median)",
           data: dataP50,
-          borderColor: "#38bdf8",
-          backgroundColor: "rgba(56, 189, 248, 0.15)",
+          borderColor: "#ffffff",
+          backgroundColor: "rgba(255, 255, 255, 0.05)",
           fill: true,
           tension: 0.3,
           pointRadius: 0,
+          borderWidth: 2,
         },
         {
           label: "P90 CLLI (Severe)",
           data: dataP90,
-          borderColor: "#ef4444",
+          borderColor: "#737373",
           borderDash: [4, 4],
           fill: false,
           tension: 0.3,
           pointRadius: 0,
+          borderWidth: 1.5,
         },
       ],
     },
@@ -429,8 +414,8 @@ function renderCLLIChart() {
         tooltip: { mode: "index", intersect: false },
       },
       scales: {
-        x: { ticks: { maxTicksLimit: 6, color: "#64748b", font: { size: 9 } }, grid: { display: false } },
-        y: { ticks: { color: "#64748b", font: { size: 9 } }, grid: { color: "#1e293b" } },
+        x: { ticks: { maxTicksLimit: 6, color: "#737373", font: { size: 9, family: "'JetBrains Mono', monospace" } }, grid: { display: false } },
+        y: { ticks: { color: "#737373", font: { size: 9, family: "'JetBrains Mono', monospace" } }, grid: { color: "#262626" } },
       },
     },
   });
@@ -491,8 +476,8 @@ async function openAssetModal(assetId) {
           <span>${cause}</span>
           <span style="font-family:var(--font-mono); font-weight:700;">${pct}%</span>
         </div>
-        <div style="height:6px; background:#1e293b; border-radius:3px; overflow:hidden;">
-          <div style="height:100%; width:${pct}%; background:#38bdf8; border-radius:3px;"></div>
+        <div style="height:6px; background:#262626; border-radius:3px; overflow:hidden;">
+          <div style="height:100%; width:${pct}%; background:#ffffff; border-radius:3px;"></div>
         </div>
       `;
       barsContainer.appendChild(row);
@@ -502,7 +487,7 @@ async function openAssetModal(assetId) {
     const chainContainer = document.getElementById("modalCausalChain");
     chainContainer.innerHTML = "";
     if (data.causal_chain.length === 0) {
-      chainContainer.innerHTML = `<div class="chain-step" style="border-left-color:#10b981">Asset operates normally without cascade failure.</div>`;
+      chainContainer.innerHTML = `<div class="chain-step" style="border-left-color:#ffffff">Asset operates normally without cascade failure.</div>`;
     } else {
       data.causal_chain.forEach((step) => {
         const item = document.createElement("div");
@@ -541,7 +526,7 @@ async function loadDoomsdayBoard() {
       card.innerHTML = `
         <div class="doomsday-card-top">
           <div>
-            <div style="font-size:14px; font-weight:700; color:#fff; margin-bottom:4px;">${item.title}</div>
+            <div style="font-size:13px; font-weight:700; color:#fff; margin-bottom:4px;">${item.title}</div>
             <div class="doomsday-subtext">Target: <b>${item.target_asset_id}</b></div>
           </div>
           <span class="countdown-pill ${item.urgency}">${item.status}</span>
@@ -549,7 +534,7 @@ async function loadDoomsdayBoard() {
 
         <div style="display:flex; align-items:baseline; gap:8px;">
           <div class="doomsday-time-left">${item.hours_remaining.toFixed(1)}h</div>
-          <span style="font-size:12px; color:var(--text-muted)">Remaining to Safe Departure</span>
+          <span style="font-size:11px; color:var(--text-muted)">Remaining to Safe Departure</span>
         </div>
 
         <div class="route-bottleneck-box">
@@ -558,7 +543,7 @@ async function loadDoomsdayBoard() {
           (P10: T${item.confidence_interval.conservative_p10_h.toFixed(1)}h)
         </div>
 
-        <div style="font-size:11px; color:var(--accent-green);">${item.benefit_summary}</div>
+        <div style="font-size:11px; color:var(--text-secondary);">${item.benefit_summary}</div>
       `;
       container.appendChild(card);
     });
@@ -595,7 +580,7 @@ async function executeWhatIf() {
     return;
   }
 
-  document.getElementById("btnRunWhatIf").textContent = "⚡ Computing...";
+  document.getElementById("btnRunWhatIf").textContent = "Computing...";
 
   try {
     const res = await fetch(`${API_BASE}/api/scenario/${STATE.scenarioId}/whatif`, {
@@ -613,7 +598,7 @@ async function executeWhatIf() {
   } catch (err) {
     console.error("Error running what-if:", err);
   } finally {
-    document.getElementById("btnRunWhatIf").textContent = "⚡ Compute Forked Timeline";
+    document.getElementById("btnRunWhatIf").textContent = "Compute Forked Timeline";
   }
 }
 
@@ -629,20 +614,24 @@ function renderWhatIfChart(comp) {
       labels,
       datasets: [
         {
-          label: "Baseline Lifeline Loss (No Action)",
+          label: "Baseline Loss (No Action)",
           data: comp.baseline_clli_p50,
-          borderColor: "#ef4444",
-          backgroundColor: "rgba(239, 68, 68, 0.1)",
-          fill: true,
+          borderColor: "#737373",
+          borderDash: [4, 4],
+          backgroundColor: "transparent",
           tension: 0.3,
+          borderWidth: 1.5,
+          pointRadius: 0,
         },
         {
           label: "Forked Timeline (With Interventions)",
           data: comp.branch_clli_p50,
-          borderColor: "#10b981",
-          backgroundColor: "rgba(16, 185, 129, 0.15)",
+          borderColor: "#ffffff",
+          backgroundColor: "rgba(255, 255, 255, 0.08)",
           fill: true,
           tension: 0.3,
+          borderWidth: 2,
+          pointRadius: 0,
         },
       ],
     },
@@ -650,11 +639,11 @@ function renderWhatIfChart(comp) {
       responsive: true,
       maintainAspectRatio: false,
       plugins: {
-        legend: { labels: { color: "#fff" } },
+        legend: { labels: { color: "#ffffff", font: { family: "'JetBrains Mono', monospace", size: 11 } } },
       },
       scales: {
-        x: { ticks: { color: "#64748b" }, grid: { color: "#1e293b" } },
-        y: { ticks: { color: "#64748b" }, grid: { color: "#1e293b" } },
+        x: { ticks: { color: "#737373", font: { family: "'JetBrains Mono', monospace" } }, grid: { color: "#1e1e1e" } },
+        y: { ticks: { color: "#737373", font: { family: "'JetBrains Mono', monospace" } }, grid: { color: "#1e1e1e" } },
       },
     },
   });
@@ -742,7 +731,7 @@ async function loadCrisisCouncil() {
         <div style="font-weight:700; color:#fff;">Step ${o.step}: ${o.action}</div>
         <div style="display:flex; justify-content:space-between; margin-top:4px; color:var(--text-muted); font-size:11px;">
           <span>Agency: <b>${o.owner}</b></span>
-          <span style="font-family:var(--font-mono); color:var(--accent-amber);">Deadline: ${o.deadline}</span>
+          <span style="font-family:var(--font-mono); color:#ffffff;">Deadline: ${o.deadline}</span>
         </div>
       `;
       orders.appendChild(div);
@@ -766,7 +755,7 @@ function loadRedTeamDefault() {
 }
 
 async function runRedTeam() {
-  document.getElementById("btnRunRedTeam").textContent = "⚡ Running Stress Test...";
+  document.getElementById("btnRunRedTeam").textContent = "Running Stress Test...";
   try {
     const res = await fetch(`${API_BASE}/api/scenario/${STATE.scenarioId}/redteam`, { method: "POST" });
     const data = await res.json();
@@ -782,8 +771,8 @@ async function runRedTeam() {
       row.className = "facility-row";
       row.innerHTML = `
         <span>${fac.name}</span>
-        <span style="font-family:var(--font-mono); color:${fac.robust ? "#10b981" : "#ef4444"}">
-          ${fac.robust ? "ROBUST" : "AT RISK"} (${fac.fail_risk_under_redteam_pct}% Fail Risk)
+        <span style="font-family:var(--font-mono); color:${fac.robust ? "#ffffff" : "#737373"}">
+          ${fac.robust ? "[ROBUST]" : "[AT RISK]"} (${fac.fail_risk_under_redteam_pct}% Fail Risk)
         </span>
       `;
       list.appendChild(row);
@@ -794,6 +783,6 @@ async function runRedTeam() {
   } catch (err) {
     console.error("Error running red team:", err);
   } finally {
-    document.getElementById("btnRunRedTeam").textContent = "⚡ Run Adversarial Test";
+    document.getElementById("btnRunRedTeam").textContent = "Run Adversarial Test";
   }
 }
