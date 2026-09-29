@@ -1,7 +1,7 @@
 /**
  * Failure Clock — Lead-Designer Grade Operations Controller
  * High-performance, reactive, and minimalist UI orchestration.
- * All 20 audited bugs squashed with robust defensive design.
+ * All UI and interaction bugs completely squashed.
  */
 
 const API_BASE = window.location.origin;
@@ -41,13 +41,17 @@ document.addEventListener("DOMContentLoaded", async () => {
   initTimeMachine();
 
   await loadScenario(STATE.scenarioId);
+
+  // Guarantee seamless Leaflet tile rendering
+  setTimeout(() => {
+    if (STATE.map) STATE.map.invalidateSize();
+  }, 250);
 });
 
 // ==========================================================================
 // Map Initialization
 // ==========================================================================
 function initMap() {
-  // Center on Puri District, Odisha
   STATE.map = L.map("map", {
     center: [19.820, 85.835],
     zoom: 12,
@@ -55,17 +59,17 @@ function initMap() {
     attributionControl: true,
   });
 
-  // Re-add zoom control to avoid obscuring floating island
+  // Position zoom controls cleanly below the top floating bar
   L.control.zoom({ position: "topleft" }).addTo(STATE.map);
 
-  // High-reliability OpenStreetMap tile layer styled via grayscale CSS
+  // High-reliability OpenStreetMap tile layer with blueprint grayscale filter
   L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
     attribution: '&copy; OpenStreetMap · Failure Clock System',
     subdomains: ["a", "b", "c"],
     maxZoom: 18,
   }).addTo(STATE.map);
 
-  // BUG-12 Fix: Dismiss slide-over drawer when clicking directly on map canvas
+  // Dismiss slide-over drawer when clicking directly on map background
   STATE.map.on("click", (e) => {
     if (e.originalEvent) {
       const target = e.originalEvent.target;
@@ -96,7 +100,7 @@ function initNavigation() {
     deselectActiveMarker();
   });
 
-  // BUG-11 Fix: Back to Action Deadlines from Asset Detail
+  // Back to Action Deadlines from Asset Detail
   if (backBtn) {
     backBtn.addEventListener("click", () => {
       switchDrawerPane("actions");
@@ -113,7 +117,7 @@ function initNavigation() {
       // Switch to this pane
       switchDrawerPane(targetPane);
 
-      // Open drawer if it's currently collapsed
+      // Open drawer
       openDrawer();
     });
   });
@@ -124,7 +128,6 @@ function openDrawer() {
   drawer.classList.remove("collapsed");
   STATE.isDrawerOpen = true;
 
-  // BUG-04 Fix: Ensure Chart.js resizes properly when opening drawer
   if (STATE.currentDrawerPane === "timemachine" && STATE.tmChartInstance) {
     setTimeout(() => {
       STATE.tmChartInstance.resize();
@@ -150,7 +153,6 @@ function toggleDrawer() {
 function switchDrawerPane(paneName) {
   STATE.currentDrawerPane = paneName;
 
-  // Update Drawer Titles & Subtitles
   const titleEl = document.getElementById("drawerTitle");
   const subEl = document.getElementById("drawerSubtitle");
 
@@ -186,7 +188,7 @@ function switchDrawerPane(paneName) {
   titleEl.textContent = current.title;
   subEl.textContent = current.sub;
 
-  // Toggle pane visibility
+  // Toggle active pane
   document.querySelectorAll(".drawer-pane").forEach((p) => p.classList.remove("active"));
   const activePane = document.getElementById(current.id);
   if (activePane) activePane.classList.add("active");
@@ -196,7 +198,7 @@ function switchDrawerPane(paneName) {
     b.classList.toggle("active", b.dataset.drawer === paneName);
   });
 
-  // BUG-04 Fix: Resize chart if switching to timemachine
+  // Resize Chart if switching to timemachine
   if (paneName === "timemachine" && STATE.tmChartInstance) {
     setTimeout(() => {
       STATE.tmChartInstance.resize();
@@ -210,12 +212,14 @@ function switchDrawerPane(paneName) {
 function initScenarioSelect() {
   const sel = document.getElementById("scenarioSelect");
   sel.addEventListener("change", async (e) => {
+    sel.disabled = true;
     await loadScenario(e.target.value);
+    sel.disabled = false;
   });
 }
 
 // ==========================================================================
-// Scenario Data Loader (BUG-14, BUG-16 Fixes)
+// Scenario Data Loader
 // ==========================================================================
 async function loadScenario(scenarioId) {
   STATE.scenarioId = scenarioId;
@@ -241,14 +245,13 @@ async function loadScenario(scenarioId) {
     STATE.actions = await actionsRes.json();
     STATE.councilData = await councilRes.json();
 
-    // BUG-14 Fix: Dynamically configure slider bounds from scenario time_steps
+    // Dynamically set slider bounds
     const slider = document.getElementById("timeSlider");
     if (slider && STATE.timeSteps.length > 0) {
       const minT = STATE.timeSteps[0];
       const maxT = STATE.timeSteps[STATE.timeSteps.length - 1];
       slider.min = minT;
       slider.max = maxT;
-      // Default to T-12h if within bounds, else minT
       STATE.currentTimeH = (minT <= -12.0 && maxT >= -12.0) ? -12.0 : minT;
       slider.value = STATE.currentTimeH;
     }
@@ -266,8 +269,7 @@ async function loadScenario(scenarioId) {
     updateStateAtTime(STATE.currentTimeH);
   } catch (err) {
     console.error("Failed to load scenario data:", err);
-    // BUG-16 Fix: Display non-intrusive toast notification
-    showErrorToast("Network error: Failed to load cyclone scenario data. Please check connection.");
+    showErrorToast("Network error: Failed to load cyclone scenario data.");
   }
 }
 
@@ -283,7 +285,7 @@ function showErrorToast(msg) {
 }
 
 // ==========================================================================
-// Map Rendering & Markers (BUG-08, BUG-10 Fixes)
+// Map Rendering & Markers
 // ==========================================================================
 function renderMap() {
   // Clear existing layers
@@ -296,20 +298,34 @@ function renderMap() {
   if (!STATE.graph || !STATE.graph.nodes) return;
   const nodes = STATE.graph.nodes;
 
-  // 1. Road Segments
+  // 1. Road Segments with comfortable click targets (weight: 5)
   nodes.filter((n) => n.type === "ROAD_SEGMENT").forEach((road) => {
     const coords = getRoadCoordinates(road.id, road.lat, road.lon);
     const poly = L.polyline(coords, {
       color: "#18181b",
-      weight: 3.5,
+      weight: 5,
       opacity: 0.85,
-      smoothFactor: 1.0,
+      lineCap: "round",
+      lineJoin: "round",
     }).addTo(STATE.map);
 
     poly.bindTooltip(
-      `<b>${road.name}</b><br><span style="font-size:10px;color:#71717a">Click to inspect passability</span>`,
+      `<b>${road.name}</b><br><span style="font-size:10px;color:#a1a1aa">Click to inspect passability</span>`,
       { sticky: true }
     );
+
+    // Hover effect for clear affordance
+    poly.on("mouseover", () => poly.setStyle({ weight: 7, opacity: 1.0 }));
+    poly.on("mouseout", () => {
+      const isFailed = STATE.scenarioAssets?.[road.id]?.state_timeline_p50?.some(
+        (pt) => Math.abs(pt[0] - STATE.currentTimeH) < 0.05 && pt[1] === "FAILED"
+      );
+      poly.setStyle({
+        weight: 5,
+        opacity: isFailed ? 0.6 : 0.85,
+      });
+    });
+
     poly.on("click", () => inspectAsset(road.id));
     STATE.roadPolylines[road.id] = poly;
   });
@@ -320,20 +336,20 @@ function renderMap() {
     const marker = L.marker([node.lat, node.lon], { icon }).addTo(STATE.map);
 
     marker.bindTooltip(
-      `<b>${node.name}</b><br><span style="font-size:10px;color:#71717a">${node.type.replace(/_/g, " ")} · Click to inspect</span>`,
+      `<b>${node.name}</b><br><span style="font-size:10px;color:#a1a1aa">${node.type.replace(/_/g, " ")} · Click to inspect</span>`,
       { sticky: true }
     );
     marker.on("click", () => inspectAsset(node.id));
     STATE.assetMarkers[node.id] = marker;
   });
 
-  // 3. Cyclone Center Eye Marker
+  // 3. Cyclone Center Eye Marker (pointer-events: none on wrapper so underlying nodes are always clickable)
   const stormIcon = L.divIcon({
     className: "custom-storm-icon",
     html: `
       <div class="storm-eye-wrapper">
         <div class="storm-eye-pulse"></div>
-        <div class="storm-eye-center">◎</div>
+        <div class="storm-eye-center" title="Cyclone Center">◎</div>
       </div>
     `,
     iconSize: [44, 44],
@@ -342,7 +358,6 @@ function renderMap() {
 
   const initPos = interpolateStormPosition(STATE.scenarioTrack, STATE.currentTimeH);
   STATE.stormMarker = L.marker([initPos.lat, initPos.lon], { icon: stormIcon }).addTo(STATE.map);
-  STATE.stormMarker.bindTooltip("<b>Cyclone Eye Center</b><br>Track Tracking Station", { sticky: true });
 }
 
 function createNodeIcon(type, state) {
@@ -365,7 +380,7 @@ function createNodeIcon(type, state) {
   });
 }
 
-// BUG-08 Fix: Interpolate exact storm eye coordinates from scenario track
+// Interpolate exact storm eye coordinates from scenario track
 function interpolateStormPosition(track, timeH) {
   if (!track || track.length === 0) {
     return { lat: 19.78, lon: 85.80 };
@@ -412,7 +427,7 @@ function getRoadCoordinates(roadId, centerLat, centerLon) {
 }
 
 // ==========================================================================
-// Time Engine & Dynamic State Updates (BUG-07, BUG-08 Fixes)
+// Time Engine & Dynamic State Updates
 // ==========================================================================
 function updateStateAtTime(timeH) {
   if (!STATE.scenarioAssets) return;
@@ -440,9 +455,9 @@ function updateStateAtTime(timeH) {
       const poly = STATE.roadPolylines[aid];
       if (poly) {
         if (state === "FAILED") {
-          poly.setStyle({ color: "#a1a1aa", dashArray: "4, 6", weight: 2.5, opacity: 0.6 });
+          poly.setStyle({ color: "#a1a1aa", dashArray: "4, 6", weight: 4.5, opacity: 0.6 });
         } else {
-          poly.setStyle({ color: "#18181b", dashArray: null, weight: 3.5, opacity: 0.9 });
+          poly.setStyle({ color: "#18181b", dashArray: null, weight: 5, opacity: 0.85 });
         }
       }
     } else {
@@ -457,7 +472,7 @@ function updateStateAtTime(timeH) {
     else if (state === "FAILED") countFa++;
   });
 
-  // Re-apply selection highlight if active (BUG-10 Fix)
+  // Re-apply selection highlight if active
   if (STATE.selectedAssetId && STATE.assetMarkers[STATE.selectedAssetId]) {
     const marker = STATE.assetMarkers[STATE.selectedAssetId];
     const el = marker.getElement();
@@ -475,13 +490,13 @@ function updateStateAtTime(timeH) {
   if (bkEl) bkEl.textContent = countBk;
   if (faEl) faEl.textContent = countFa;
 
-  // BUG-08 Fix: True storm eye movement from interpolated track coordinates
+  // True storm eye movement from interpolated track coordinates
   if (STATE.stormMarker && STATE.scenarioTrack && STATE.scenarioTrack.length > 0) {
     const pos = interpolateStormPosition(STATE.scenarioTrack, timeH);
     STATE.stormMarker.setLatLng([pos.lat, pos.lon]);
   }
 
-  // BUG-07 Fix: Visual progress fill width update
+  // Visible progress fill width update
   const slider = document.getElementById("timeSlider");
   const fill = document.getElementById("sliderFill");
   if (slider && fill) {
@@ -503,18 +518,18 @@ function updateTimeDisplay() {
   }
 
   let phase = "Pre-Landfall Warning";
-  if (t <= -18) phase = "Pre-Landfall Warning (48h-24h)";
-  else if (t > -18 && t <= -6) phase = "Pre-Landfall Preparation";
+  if (t <= -18) phase = "Pre-Landfall Warning";
+  else if (t > -18 && t <= -6) phase = "Pre-Landfall Prep";
   else if (t > -6 && t <= -1) phase = "Final Evacuation Window";
   else if (t > -1 && t <= 3) phase = "Landfall Eye Window";
-  else if (t > 3 && t <= 16) phase = "Peak Surge & Wind Cascade";
-  else phase = "Post-Storm Recovery Phase";
+  else if (t > 3 && t <= 16) phase = "Peak Surge & Wind";
+  else phase = "Post-Storm Recovery";
 
   if (phaseEl) phaseEl.textContent = phase;
 }
 
 // ==========================================================================
-// Scrubber Controls & Playback (BUG-17 Fix)
+// Scrubber Controls & Playback
 // ==========================================================================
 function initScrubber() {
   const slider = document.getElementById("timeSlider");
@@ -527,6 +542,20 @@ function initScrubber() {
     updateTimeDisplay();
     updateStateAtTime(STATE.currentTimeH);
     renderActions();
+  });
+
+  // Clickable timeline milestones
+  document.querySelectorAll(".milestone-tick").forEach((tick) => {
+    tick.addEventListener("click", () => {
+      const targetT = parseFloat(tick.dataset.time);
+      if (!isNaN(targetT)) {
+        STATE.currentTimeH = targetT;
+        slider.value = targetT;
+        updateTimeDisplay();
+        updateStateAtTime(targetT);
+        renderActions();
+      }
+    });
   });
 
   playBtn.addEventListener("click", () => {
@@ -558,7 +587,7 @@ function startPlay() {
   const max = parseFloat(slider.max || 36);
   const min = parseFloat(slider.min || -24);
 
-  // BUG-17 Fix: Reset to start if playing at the end of timeline
+  // Reset to start if playing at the end of timeline
   if (STATE.currentTimeH >= max) {
     STATE.currentTimeH = min;
     slider.value = min;
@@ -591,7 +620,7 @@ function pausePlay() {
 }
 
 // ==========================================================================
-// Action Deadlines Pane (BUG-03, BUG-09 Fixes)
+// Action Deadlines Pane
 // ==========================================================================
 function renderActions() {
   const container = document.getElementById("actionsContainer");
@@ -618,7 +647,7 @@ function renderActions() {
       deadlineText = `CRITICAL: ${hoursRemaining.toFixed(1)}h left`;
     }
 
-    // BUG-09 Fix: Route passability float comparison with epsilon tolerance
+    // Route passability check with epsilon tolerance
     const routeId = (act.route_asset_ids && act.route_asset_ids.length > 0) ? act.route_asset_ids[0] : null;
     let routeStatus = "Direct Access";
     let routeClass = "open";
@@ -650,13 +679,12 @@ function renderActions() {
           <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"></path><line x1="4" y1="22" x2="4" y2="15"></line></svg>
           Route: ${routeStatus}
         </span>
-        <span>Req: <b>${(act.resources_needed || "Standby").split(",")[0]}</b></span>
+        <span class="action-inspect-link">Inspect Asset →</span>
       </div>
     `;
 
-    // BUG-03 Fix: Use act.target_asset_id (singular string from schema)
+    // Click card to pan to asset and open detail view
     if (act.target_asset_id) {
-      card.style.cursor = "pointer";
       card.addEventListener("click", () => inspectAsset(act.target_asset_id));
     }
 
@@ -665,14 +693,13 @@ function renderActions() {
 }
 
 // ==========================================================================
-// Failure Sequence Timeline Pane (BUG-02 Fix)
+// Failure Sequence Timeline Pane
 // ==========================================================================
 function renderFailureSequence() {
   const container = document.getElementById("sequenceContainer");
   if (!container) return;
   container.innerHTML = "";
 
-  // BUG-02 Fix: Query exact backend metric keys from SimulationAggregator
   const outagePctEl = document.getElementById("metricOutagePct");
   const patientHoursEl = document.getElementById("metricPatientHours");
 
@@ -714,7 +741,7 @@ function renderFailureSequence() {
 }
 
 // ==========================================================================
-// Asset Detail & Causal Explanation (BUG-01, BUG-06, BUG-10 Fixes)
+// Asset Detail & Causal Explanation
 // ==========================================================================
 async function inspectAsset(assetId) {
   STATE.selectedAssetId = assetId;
@@ -723,7 +750,7 @@ async function inspectAsset(assetId) {
   switchDrawerPane("detail");
   openDrawer();
 
-  // BUG-10 Fix: Apply visual selection ring to active marker
+  // Apply visual selection ring to active marker
   applyMarkerSelection(assetId);
 
   // Focus map on asset
@@ -737,7 +764,6 @@ async function inspectAsset(assetId) {
     if (!res.ok) return;
     const data = await res.json();
 
-    // Toggle views
     document.getElementById("detailEmptyMessage").style.display = "none";
     const detailCard = document.getElementById("detailCard");
     detailCard.classList.remove("hidden");
@@ -747,7 +773,7 @@ async function inspectAsset(assetId) {
     document.getElementById("detailTitle").textContent = data.name;
     document.getElementById("detailLocation").textContent = `ID: ${data.asset_id} · Priority: ${data.criticality}`;
 
-    // Current State & BUG-06 Fix: Handle backup class names properly
+    // Current State & backup class names
     let liveState = "OPERATING";
     if (STATE.scenarioAssets && STATE.scenarioAssets[assetId]) {
       const tl = STATE.scenarioAssets[assetId].state_timeline_p50 || [];
@@ -767,7 +793,7 @@ async function inspectAsset(assetId) {
     // Dominant cause
     document.getElementById("detailDominantCause").textContent = `Trigger: ${data.dominant_cause.replace(/_/g, " ")}`;
 
-    // BUG-01 Fix: Remove * 100 (backend already returns percentage on 0-100 scale)
+    // Cause breakdown bars
     const barsContainer = document.getElementById("detailCauseBars");
     barsContainer.innerHTML = "";
     Object.entries(data.cause_breakdown || {}).forEach(([cause, pct]) => {
@@ -818,7 +844,6 @@ async function inspectAsset(assetId) {
   }
 }
 
-// BUG-10 Fix: Manage active marker visual selection highlight
 function applyMarkerSelection(assetId) {
   deselectActiveMarker();
   const marker = STATE.assetMarkers[assetId];
@@ -843,7 +868,7 @@ function deselectActiveMarker() {
 }
 
 // ==========================================================================
-// Time Machine (BUG-04 Fix)
+// Time Machine (What-If)
 // ==========================================================================
 function initTimeMachine() {
   const btn = document.getElementById("btnRunFork");
@@ -870,7 +895,6 @@ function renderTimeMachineOptions() {
     container.appendChild(label);
   });
 
-  // Run initial what-if simulation to render baseline vs branch chart
   runTimeMachineFork();
 }
 
@@ -895,13 +919,11 @@ async function runTimeMachineFork() {
     const data = await res.json();
     STATE.whatifData = data;
 
-    // Update Saved Points Badge
     const badge = document.getElementById("tmPointsSaved");
     if (badge) {
       badge.textContent = `+${data.total_lifeline_points_saved.toFixed(1)} CLLI Points Saved`;
     }
 
-    // Render / Update Chart.js Comparison Chart
     renderTimeMachineChart(data.clli_comparison);
 
   } catch (err) {
@@ -1002,12 +1024,11 @@ function renderTimeMachineChart(clliComp) {
     },
   });
 
-  // BUG-04 Fix: Ensure Chart.js is properly sized immediately
   STATE.tmChartInstance.resize();
 }
 
 // ==========================================================================
-// Crisis Council Memorandum Pane
+// Crisis Council Memorandum Pane (Grounded AI Citations)
 // ==========================================================================
 function renderCouncil() {
   if (!STATE.councilData) return;
@@ -1038,12 +1059,20 @@ function renderCouncil() {
       const initial = (msg.speaker || "C").charAt(0);
       const div = document.createElement("div");
       div.className = "deliberation-msg";
+
+      // Render Grounded Simulation Citation if present
+      let citationHtml = "";
+      if (msg.tool_citation && msg.tool_citation.tag) {
+        citationHtml = `<div class="citation-pill">${msg.tool_citation.tag}: ${msg.tool_citation.value}</div>`;
+      }
+
       div.innerHTML = `
         <div class="speaker-bar">
           <span class="speaker-avatar">${initial}</span>
           <span class="speaker-name">${msg.speaker}</span>
         </div>
         <div class="speech-text">${msg.message}</div>
+        ${citationHtml}
       `;
       chatContainer.appendChild(div);
     });

@@ -7,8 +7,8 @@
   /* Surface & Base Colors (Pure Editorial Light Mode) */
   --bg-canvas: #f8f9fa;
   --surface-pure: #ffffff;
-  --surface-glass: rgba(255, 255, 255, 0.94);
-  --surface-glass-subtle: rgba(255, 255, 255, 0.82);
+  --surface-glass: rgba(255, 255, 255, 0.95);
+  --surface-glass-subtle: rgba(255, 255, 255, 0.85);
   --surface-muted: #f4f4f5;
   --surface-hover: #ebecef;
 
@@ -100,7 +100,7 @@ html, body {
   box-shadow: var(--shadow-card) !important;
   border-radius: 10px !important;
   overflow: hidden;
-  margin-top: 80px !important;
+  margin-top: 74px !important;
   margin-left: 20px !important;
 }
 
@@ -128,21 +128,39 @@ html, body {
   border-top-left-radius: 6px;
 }
 
+/* High-Contrast Minimalist Tooltip */
+.leaflet-tooltip {
+  background: rgba(24, 24, 27, 0.94) !important;
+  backdrop-filter: blur(8px) !important;
+  border: 1px solid rgba(255, 255, 255, 0.15) !important;
+  border-radius: 8px !important;
+  color: #ffffff !important;
+  font-family: var(--font-sans) !important;
+  font-size: 11px !important;
+  font-weight: 500 !important;
+  padding: 6px 10px !important;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.25) !important;
+}
+
+.leaflet-tooltip-top:before {
+  border-top-color: rgba(24, 24, 27, 0.94) !important;
+}
+
 /* ==========================================================================
-   Floating Top Navigation Island
+   Floating Top Navigation Island (Never Overlapped by Drawer)
    ========================================================================== */
 .floating-nav-island {
   position: absolute;
-  top: 20px;
+  top: 14px;
   left: 50%;
   transform: translateX(-50%);
-  z-index: 500;
+  z-index: 1000;
   display: flex;
   align-items: center;
   gap: 16px;
   background: var(--surface-glass);
-  backdrop-filter: blur(20px) saturate(180%);
-  -webkit-backdrop-filter: blur(20px) saturate(180%);
+  backdrop-filter: blur(24px) saturate(180%);
+  -webkit-backdrop-filter: blur(24px) saturate(180%);
   border: 1px solid var(--border-standard);
   border-radius: 9999px;
   padding: 6px 14px 6px 18px;
@@ -157,6 +175,7 @@ html, body {
   gap: 10px;
   padding-right: 12px;
   border-right: 1px solid var(--border-subtle);
+  flex-shrink: 0;
 }
 
 .brand-mark {
@@ -201,6 +220,7 @@ html, body {
   background: var(--surface-muted);
   border-radius: 9999px;
   padding: 3px;
+  flex-shrink: 0;
 }
 
 .nav-segment-btn {
@@ -262,6 +282,7 @@ html, body {
   align-items: center;
   gap: 8px;
   padding-left: 6px;
+  flex-shrink: 0;
 }
 
 .scenario-pill-select {
@@ -313,26 +334,26 @@ html, body {
    ========================================================================== */
 .floating-scrubber-island {
   position: absolute;
-  bottom: 24px;
+  bottom: 16px;
   left: 50%;
   transform: translateX(-50%);
-  z-index: 500;
-  width: min(880px, calc(100vw - 48px));
+  z-index: 1000;
+  width: min(840px, calc(100vw - 40px));
   background: var(--surface-glass);
   backdrop-filter: blur(24px) saturate(180%);
   -webkit-backdrop-filter: blur(24px) saturate(180%);
   border: 1px solid var(--border-standard);
   border-radius: 24px;
-  padding: 14px 22px;
+  padding: 12px 20px;
   display: grid;
-  grid-template-columns: 140px 1fr 100px 180px;
+  grid-template-columns: 160px 1fr 96px 170px;
   align-items: center;
-  gap: 20px;
+  gap: 16px;
   box-shadow: var(--shadow-island);
   transition: all var(--duration-standard) var(--ease-spring);
 }
 
-/* Section 1: Clock display */
+/* Section 1: Clock display (widened to 160px for full text) */
 .scrubber-clock-section {
   display: flex;
   flex-direction: column;
@@ -340,7 +361,7 @@ html, body {
 
 .clock-time {
   font-family: var(--font-mono);
-  font-size: 24px;
+  font-size: 22px;
   font-weight: 800;
   color: var(--text-ink);
   letter-spacing: -0.5px;
@@ -352,31 +373,31 @@ html, body {
   font-weight: 600;
   color: var(--text-muted);
   text-transform: uppercase;
-  letter-spacing: 0.5px;
+  letter-spacing: 0.4px;
   margin-top: 4px;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
 
-/* Section 2: Range Slider & Progress Fill (BUG-07 Fix) */
+/* Section 2: Range Slider & Real Visible Progress Fill */
 .scrubber-slider-section {
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 5px;
 }
 
 .scrubber-bar-container {
   position: relative;
   width: 100%;
-  height: 24px;
+  height: 20px;
   display: flex;
   align-items: center;
 }
 
 .scrubber-range-input {
   position: relative;
-  z-index: 2;
+  z-index: 1;
   width: 100%;
   height: 6px;
   border-radius: 9999px;
@@ -389,40 +410,44 @@ html, body {
 
 .scrubber-range-input::-webkit-slider-thumb {
   -webkit-appearance: none;
-  width: 18px;
-  height: 18px;
+  position: relative;
+  z-index: 3;
+  width: 16px;
+  height: 16px;
   border-radius: 50%;
   background: var(--accent-ink);
   border: 2px solid #ffffff;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.25);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
   cursor: pointer;
   transition: transform 0.1s ease;
 }
 
 .scrubber-range-input::-webkit-slider-thumb:hover {
-  transform: scale(1.2);
+  transform: scale(1.25);
 }
 
 .scrubber-range-input::-moz-range-thumb {
-  width: 18px;
-  height: 18px;
+  position: relative;
+  z-index: 3;
+  width: 16px;
+  height: 16px;
   border-radius: 50%;
   background: var(--accent-ink);
   border: 2px solid #ffffff;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.25);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
   cursor: pointer;
 }
 
-/* Visual Progress Fill (BUG-07 Fix) */
+/* Live Progress Fill Bar (z-index 2 over track) */
 .scrubber-progress-fill {
   position: absolute;
   left: 0;
-  top: 9px;
+  top: 7px;
   height: 6px;
   background: var(--accent-ink);
   border-radius: 9999px;
   pointer-events: none;
-  z-index: 1;
+  z-index: 2;
   transition: width 0.08s linear;
 }
 
@@ -436,12 +461,22 @@ html, body {
   letter-spacing: 0.2px;
 }
 
+.milestone-tick {
+  cursor: pointer;
+  padding: 1px 4px;
+  border-radius: 4px;
+  transition: all 0.15s ease;
+}
+
+.milestone-tick:hover {
+  background: rgba(0, 0, 0, 0.08);
+  color: var(--text-ink);
+}
+
 .scrubber-milestones .landfall-flag {
   color: var(--text-ink);
   font-weight: 700;
   background: rgba(0, 0, 0, 0.06);
-  padding: 1px 5px;
-  border-radius: 4px;
 }
 
 /* Section 3: Playback buttons */
@@ -449,7 +484,7 @@ html, body {
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 6px;
+  gap: 5px;
 }
 
 .btn-scrub-icon {
@@ -476,8 +511,8 @@ html, body {
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 36px;
-  height: 36px;
+  width: 34px;
+  height: 34px;
   border-radius: 50%;
   border: none;
   background: var(--accent-ink);
@@ -505,24 +540,24 @@ html, body {
   display: flex;
   align-items: center;
   justify-content: flex-end;
-  gap: 8px;
+  gap: 6px;
 }
 
 .telemetry-pill {
   display: flex;
   align-items: center;
-  gap: 5px;
+  gap: 4px;
   background: var(--surface-pure);
   border: 1px solid var(--border-subtle);
   border-radius: 9999px;
-  padding: 4px 10px;
+  padding: 4px 8px;
   font-family: var(--font-mono);
   box-shadow: var(--shadow-card);
 }
 
 .telemetry-dot {
-  width: 7px;
-  height: 7px;
+  width: 6px;
+  height: 6px;
   border-radius: 50%;
 }
 
@@ -542,37 +577,37 @@ html, body {
 }
 
 .telemetry-val {
-  font-size: 12px;
+  font-size: 11px;
   font-weight: 700;
   color: var(--text-ink);
 }
 
 .telemetry-label {
-  font-size: 10px;
+  font-size: 9px;
   color: var(--text-muted);
   font-family: var(--font-sans);
-  font-weight: 500;
+  font-weight: 600;
 }
 
 /* ==========================================================================
-   Minimalist Floating Map Legend (Bottom-Left)
+   Minimalist Floating Map Legend (Top-Left under zoom buttons)
    ========================================================================== */
 .floating-legend {
   position: absolute;
-  bottom: 24px;
-  left: 24px;
+  top: 170px;
+  left: 20px;
   z-index: 500;
   background: var(--surface-glass);
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
   border: 1px solid var(--border-standard);
   border-radius: 14px;
-  padding: 10px 14px;
+  padding: 10px 12px;
   display: flex;
   flex-direction: column;
-  gap: 7px;
+  gap: 6px;
   box-shadow: var(--shadow-island);
-  font-size: 11px;
+  font-size: 10px;
   font-weight: 600;
   color: var(--text-charcoal);
 }
@@ -587,18 +622,18 @@ html, body {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 20px;
-  height: 20px;
-  border-radius: 6px;
+  width: 18px;
+  height: 18px;
+  border-radius: 5px;
   background: var(--accent-ink);
   color: #ffffff;
   font-family: var(--font-mono);
-  font-size: 9px;
+  font-size: 8px;
   font-weight: 700;
 }
 
 .legend-track {
-  width: 20px;
+  width: 18px;
   height: 3px;
   border-radius: 2px;
 }
@@ -613,21 +648,22 @@ html, body {
 }
 
 /* ==========================================================================
-   Slide-Over Drawer (Non-Intrusive, Collapsible Architecture)
+   Slide-Over Drawer (Non-Overlapping, Seamless Side Sheet)
+   Sits neatly between top navigation (top: 74px) and scrubber (bottom: 96px)
    ========================================================================== */
 .slide-drawer {
   position: absolute;
-  top: 18px;
-  bottom: 18px;
-  right: 18px;
-  width: 480px;
-  max-width: calc(100vw - 36px);
-  z-index: 600;
+  top: 74px;
+  bottom: 96px;
+  right: 20px;
+  width: 440px;
+  max-width: calc(100vw - 40px);
+  z-index: 950;
   background: var(--surface-glass);
   backdrop-filter: blur(28px) saturate(190%);
   -webkit-backdrop-filter: blur(28px) saturate(190%);
   border: 1px solid var(--border-standard);
-  border-radius: 24px;
+  border-radius: 20px;
   box-shadow: var(--shadow-drawer);
   display: flex;
   flex-direction: column;
@@ -637,7 +673,7 @@ html, body {
 }
 
 .slide-drawer.collapsed {
-  transform: translateX(calc(100% + 28px));
+  transform: translateX(calc(100% + 30px));
   opacity: 0;
   pointer-events: none;
 }
@@ -647,7 +683,7 @@ html, body {
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
-  padding: 22px 24px 16px 24px;
+  padding: 18px 20px 14px 20px;
   border-bottom: 1px solid var(--border-subtle);
   flex-shrink: 0;
 }
@@ -655,11 +691,11 @@ html, body {
 .drawer-title-group {
   display: flex;
   flex-direction: column;
-  gap: 3px;
+  gap: 2px;
 }
 
 .drawer-title-group h2 {
-  font-size: 17px;
+  font-size: 16px;
   font-weight: 700;
   color: var(--text-ink);
   letter-spacing: -0.2px;
@@ -675,8 +711,8 @@ html, body {
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 32px;
-  height: 32px;
+  width: 30px;
+  height: 30px;
   border-radius: 50%;
   border: 1px solid var(--border-subtle);
   background: var(--surface-pure);
@@ -696,10 +732,10 @@ html, body {
 .drawer-scroll-body {
   flex: 1;
   overflow-y: auto;
-  padding: 20px 24px;
+  padding: 18px 20px;
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: 14px;
 }
 
 .drawer-scroll-body::-webkit-scrollbar {
@@ -720,7 +756,7 @@ html, body {
 .drawer-pane {
   display: none;
   flex-direction: column;
-  gap: 14px;
+  gap: 12px;
   animation: fadeIn 0.22s ease;
 }
 
@@ -739,23 +775,24 @@ html, body {
 .cards-stack {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 10px;
 }
 
 .action-card {
   background: var(--surface-pure);
   border: 1px solid var(--border-subtle);
   border-radius: 14px;
-  padding: 16px;
+  padding: 14px 16px;
   box-shadow: var(--shadow-card);
   transition: all var(--duration-fast) ease;
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 8px;
+  cursor: pointer;
 }
 
 .action-card:hover {
-  border-color: var(--border-standard);
+  border-color: var(--border-dark);
   box-shadow: var(--shadow-hover);
   transform: translateY(-1px);
 }
@@ -778,7 +815,7 @@ html, body {
   display: inline-flex;
   align-items: center;
   gap: 4px;
-  padding: 4px 8px;
+  padding: 3px 8px;
   border-radius: 6px;
   font-family: var(--font-mono);
   font-size: 10px;
@@ -804,7 +841,7 @@ html, body {
 .action-card-desc {
   font-size: 11px;
   color: var(--text-muted);
-  line-height: 1.5;
+  line-height: 1.4;
 }
 
 .action-card-meta {
@@ -814,7 +851,7 @@ html, body {
   font-size: 10px;
   color: var(--text-muted);
   border-top: 1px solid var(--border-subtle);
-  padding-top: 10px;
+  padding-top: 8px;
   margin-top: 2px;
 }
 
@@ -833,6 +870,12 @@ html, body {
   color: var(--status-failed);
 }
 
+.action-inspect-link {
+  font-size: 10px;
+  font-weight: 700;
+  color: var(--text-ink);
+}
+
 /* ==========================================================================
    Section 2: Failure Sequence Timeline Stream
    ========================================================================== */
@@ -840,17 +883,17 @@ html, body {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 10px;
-  margin-bottom: 6px;
+  margin-bottom: 4px;
 }
 
 .meta-stat {
   background: var(--surface-pure);
   border: 1px solid var(--border-subtle);
   border-radius: 12px;
-  padding: 12px 14px;
+  padding: 10px 14px;
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 3px;
 }
 
 .meta-label {
@@ -863,7 +906,7 @@ html, body {
 
 .meta-number {
   font-family: var(--font-mono);
-  font-size: 18px;
+  font-size: 17px;
   font-weight: 800;
   color: var(--text-ink);
 }
@@ -873,7 +916,7 @@ html, body {
   flex-direction: column;
   position: relative;
   padding-left: 20px;
-  gap: 12px;
+  gap: 10px;
 }
 
 .sequence-stream::before {
@@ -891,7 +934,7 @@ html, body {
   background: var(--surface-pure);
   border: 1px solid var(--border-subtle);
   border-radius: 12px;
-  padding: 12px 14px;
+  padding: 10px 14px;
   cursor: pointer;
   transition: all var(--duration-fast) ease;
   display: flex;
@@ -1000,17 +1043,17 @@ html, body {
 .detail-card-view {
   display: flex;
   flex-direction: column;
-  gap: 14px;
+  gap: 12px;
 }
 
 .asset-card-hero {
   background: var(--surface-pure);
   border: 1px solid var(--border-subtle);
   border-radius: 14px;
-  padding: 16px;
+  padding: 14px 16px;
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 6px;
 }
 
 .asset-hero-top {
@@ -1030,7 +1073,7 @@ html, body {
   color: var(--text-charcoal);
 }
 
-/* Status Pill: Operating, Backup, Failed (BUG-06 Fix) */
+/* Status Pill: Operating, Backup, Failed */
 .asset-status-pill {
   font-family: var(--font-mono);
   font-size: 10px;
@@ -1053,7 +1096,7 @@ html, body {
 }
 
 .asset-title {
-  font-size: 16px;
+  font-size: 15px;
   font-weight: 800;
   color: var(--text-ink);
   letter-spacing: -0.2px;
@@ -1075,11 +1118,11 @@ html, body {
   background: var(--surface-pure);
   border: 1px solid var(--border-subtle);
   border-radius: 12px;
-  padding: 12px 10px;
+  padding: 10px 8px;
   text-align: center;
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 3px;
 }
 
 .prob-card.highlighted {
@@ -1102,7 +1145,7 @@ html, body {
 
 .prob-time {
   font-family: var(--font-mono);
-  font-size: 14px;
+  font-size: 13px;
   font-weight: 800;
   color: var(--text-ink);
 }
@@ -1116,14 +1159,14 @@ html, body {
   background: var(--surface-pure);
   border: 1px solid var(--border-subtle);
   border-radius: 14px;
-  padding: 14px 16px;
+  padding: 12px 14px;
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 8px;
 }
 
 .section-card-title {
-  font-size: 11px;
+  font-size: 10px;
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.5px;
@@ -1131,7 +1174,7 @@ html, body {
 }
 
 .cause-highlight-banner {
-  font-size: 13px;
+  font-size: 12px;
   font-weight: 700;
   color: var(--text-ink);
   background: var(--surface-muted);
@@ -1143,7 +1186,7 @@ html, body {
 .cause-bars-stack {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 6px;
 }
 
 .cause-bar-row {
@@ -1178,18 +1221,18 @@ html, body {
 .causal-step-flow {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 6px;
 }
 
 .causal-step-pill {
   display: flex;
   align-items: flex-start;
-  gap: 10px;
+  gap: 8px;
   font-size: 11px;
   color: var(--text-charcoal);
   line-height: 1.4;
   background: var(--surface-muted);
-  padding: 8px 12px;
+  padding: 8px 10px;
   border-radius: 8px;
 }
 
@@ -1197,13 +1240,13 @@ html, body {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 18px;
-  height: 18px;
+  width: 17px;
+  height: 17px;
   border-radius: 50%;
   background: var(--accent-ink);
   color: #ffffff;
   font-family: var(--font-mono);
-  font-size: 10px;
+  font-size: 9px;
   font-weight: 700;
   flex-shrink: 0;
 }
@@ -1211,7 +1254,7 @@ html, body {
 .dependency-spec-list {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 6px;
   font-size: 11px;
 }
 
@@ -1238,17 +1281,17 @@ html, body {
 .timemachine-hero {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 10px;
   background: var(--surface-pure);
   border: 1px solid var(--border-subtle);
   border-radius: 14px;
-  padding: 16px;
+  padding: 14px;
 }
 
 .tm-description {
-  font-size: 12px;
+  font-size: 11px;
   color: var(--text-charcoal);
-  line-height: 1.5;
+  line-height: 1.4;
 }
 
 .btn-fork-timeline {
@@ -1259,7 +1302,7 @@ html, body {
   background: var(--accent-ink);
   color: var(--text-inverted);
   border: none;
-  padding: 10px 16px;
+  padding: 10px 14px;
   border-radius: 10px;
   font-family: var(--font-sans);
   font-size: 12px;
@@ -1287,7 +1330,7 @@ html, body {
   background: var(--surface-pure);
   border: 1px solid var(--border-subtle);
   border-radius: 12px;
-  padding: 12px;
+  padding: 10px 12px;
   cursor: pointer;
   transition: all var(--duration-fast) ease;
 }
@@ -1300,8 +1343,8 @@ html, body {
 .whatif-checkbox {
   margin-top: 2px;
   accent-color: var(--accent-ink);
-  width: 16px;
-  height: 16px;
+  width: 15px;
+  height: 15px;
 }
 
 .whatif-text-group {
@@ -1311,13 +1354,13 @@ html, body {
 }
 
 .whatif-title {
-  font-size: 12px;
+  font-size: 11px;
   font-weight: 700;
   color: var(--text-ink);
 }
 
 .whatif-desc {
-  font-size: 11px;
+  font-size: 10px;
   color: var(--text-muted);
   line-height: 1.3;
 }
@@ -1326,10 +1369,10 @@ html, body {
   background: var(--surface-pure);
   border: 1px solid var(--border-subtle);
   border-radius: 14px;
-  padding: 16px;
+  padding: 14px;
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 10px;
 }
 
 .chart-header {
@@ -1339,7 +1382,7 @@ html, body {
 }
 
 .chart-title {
-  font-size: 11px;
+  font-size: 10px;
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.3px;
@@ -1348,18 +1391,18 @@ html, body {
 
 .points-saved-badge {
   font-family: var(--font-mono);
-  font-size: 11px;
+  font-size: 10px;
   font-weight: 800;
   color: var(--status-online);
   background: var(--status-online-bg);
-  padding: 3px 8px;
+  padding: 2px 7px;
   border-radius: 6px;
 }
 
 .chart-wrapper {
   position: relative;
   width: 100%;
-  height: 190px;
+  height: 180px;
 }
 
 /* ==========================================================================
@@ -1369,22 +1412,22 @@ html, body {
   background: var(--accent-ink);
   color: var(--text-inverted);
   border-radius: 14px;
-  padding: 16px;
+  padding: 14px 16px;
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 3px;
 }
 
 .council-seal {
   font-family: var(--font-mono);
-  font-size: 11px;
+  font-size: 10px;
   font-weight: 800;
   letter-spacing: 1px;
   color: #a1a1aa;
 }
 
 .council-meta {
-  font-size: 12px;
+  font-size: 11px;
   font-weight: 600;
   color: #ffffff;
 }
@@ -1392,11 +1435,11 @@ html, body {
 .council-orders-block, .council-transcript-block {
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 8px;
 }
 
 .block-heading {
-  font-size: 11px;
+  font-size: 10px;
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.5px;
@@ -1413,10 +1456,10 @@ html, body {
   background: var(--surface-pure);
   border: 1px solid var(--border-subtle);
   border-radius: 12px;
-  padding: 12px 14px;
+  padding: 10px 12px;
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 4px;
 }
 
 .order-card-top {
@@ -1427,7 +1470,7 @@ html, body {
 
 .order-step-num {
   font-family: var(--font-mono);
-  font-size: 10px;
+  font-size: 9px;
   font-weight: 700;
   background: var(--surface-muted);
   padding: 2px 6px;
@@ -1437,13 +1480,13 @@ html, body {
 
 .order-deadline-time {
   font-family: var(--font-mono);
-  font-size: 11px;
+  font-size: 10px;
   font-weight: 700;
   color: var(--status-failed);
 }
 
 .order-action-text {
-  font-size: 12px;
+  font-size: 11px;
   font-weight: 700;
   color: var(--text-ink);
 }
@@ -1456,17 +1499,17 @@ html, body {
 .deliberation-stream {
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 8px;
 }
 
 .deliberation-msg {
   background: var(--surface-pure);
   border: 1px solid var(--border-subtle);
   border-radius: 12px;
-  padding: 12px;
+  padding: 10px 12px;
   display: flex;
   flex-direction: column;
-  gap: 5px;
+  gap: 4px;
 }
 
 .speaker-bar {
@@ -1476,12 +1519,12 @@ html, body {
 }
 
 .speaker-avatar {
-  width: 18px;
-  height: 18px;
+  width: 17px;
+  height: 17px;
   border-radius: 50%;
   background: var(--accent-ink);
   color: #ffffff;
-  font-size: 9px;
+  font-size: 8px;
   font-weight: 800;
   font-family: var(--font-mono);
   display: flex;
@@ -1498,11 +1541,27 @@ html, body {
 .speech-text {
   font-size: 11px;
   color: var(--text-muted);
-  line-height: 1.5;
+  line-height: 1.4;
+}
+
+.citation-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-family: var(--font-mono);
+  font-size: 9px;
+  font-weight: 700;
+  background: rgba(24, 24, 27, 0.05);
+  color: var(--accent-ink);
+  padding: 2px 6px;
+  border-radius: 4px;
+  border: 1px solid rgba(0, 0, 0, 0.07);
+  margin-top: 3px;
+  width: fit-content;
 }
 
 /* ==========================================================================
-   Custom Map Markers & Selection Aura (BUG-10 Fix)
+   Custom Map Markers & Selection Aura
    ========================================================================== */
 .custom-node-icon {
   background: transparent;
@@ -1529,7 +1588,7 @@ html, body {
   transform: scale(1.25);
 }
 
-/* Visual Active Selection Highlight (BUG-10 Fix) */
+/* Visual Active Selection Highlight */
 .node-badge-v2.is-selected {
   transform: scale(1.35) !important;
   outline: 3px solid #09090b;
@@ -1567,10 +1626,11 @@ html, body {
   100% { box-shadow: 0 0 0 0 rgba(245, 158, 11, 0); }
 }
 
-/* Custom Storm Eye Marker */
+/* Custom Storm Eye Marker with pointer-events: none to avoid blocking underlying assets */
 .custom-storm-icon {
   background: transparent;
   border: none;
+  pointer-events: none !important;
 }
 
 .storm-eye-wrapper {
@@ -1580,6 +1640,7 @@ html, body {
   justify-content: center;
   width: 44px;
   height: 44px;
+  pointer-events: none;
 }
 
 .storm-eye-pulse {
@@ -1589,6 +1650,7 @@ html, body {
   border-radius: 50%;
   border: 2px solid rgba(24, 24, 27, 0.4);
   animation: radarWave 2s infinite linear;
+  pointer-events: none;
 }
 
 .storm-eye-center {
@@ -1603,6 +1665,8 @@ html, body {
   font-size: 13px;
   font-weight: 900;
   box-shadow: 0 2px 10px rgba(0, 0, 0, 0.35);
+  pointer-events: auto;
+  cursor: grab;
 }
 
 @keyframes radarWave {
@@ -1610,10 +1674,10 @@ html, body {
   100% { transform: scale(1.6); opacity: 0; }
 }
 
-/* Error Toast Banner (BUG-16 Fix) */
+/* Error Toast Banner */
 .error-toast {
   position: absolute;
-  top: 84px;
+  top: 74px;
   left: 50%;
   transform: translateX(-50%);
   background: #ef4444;
@@ -1649,7 +1713,7 @@ html, body {
   }
   .slide-drawer {
     width: 100vw;
-    top: 0;
+    top: 64px;
     bottom: 0;
     right: 0;
     border-radius: 0;
