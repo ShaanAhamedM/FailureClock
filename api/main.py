@@ -163,6 +163,12 @@ def explain_asset_failure(scenario_id: str, asset_id: str) -> Dict[str, Any]:
     }
 
 
+@app.get("/api/scenario/{scenario_id}/asset/{asset_id}/explain")
+def explain_asset_failure_alias(scenario_id: str, asset_id: str) -> Dict[str, Any]:
+    """Alias for singular route compatibility."""
+    return explain_asset_failure(scenario_id, asset_id)
+
+
 @app.get("/api/scenario/{scenario_id}/actions", response_model=List[InterventionAction])
 def get_scenario_actions(scenario_id: str) -> List[InterventionAction]:
     data = ensure_scenario_simulated(scenario_id)
@@ -186,10 +192,38 @@ def run_whatif_branch(scenario_id: str, req: WhatIfRequest) -> Dict[str, Any]:
     all_actions = baseline_data["ranked_actions"]
     selected_actions = [a for a in all_actions if a.id in req.selected_action_ids]
 
-    # Run counterfactual branch
+    baseline_clli_p50 = [pt[2] for pt in baseline_data["clli"]]
+
+    # Pure identity branch if no interventions are selected
+    if not selected_actions:
+        return {
+            "scenario_id": scenario_id,
+            "branch_time_h": req.branch_time_h,
+            "applied_actions": [],
+            "baseline_metrics": baseline_data["metrics"],
+            "branch_metrics": baseline_data["metrics"],
+            "total_lifeline_points_saved": 0.0,
+            "clli_comparison": {
+                "time_steps": baseline_data["raw"]["time_steps"],
+                "baseline_clli_p50": baseline_clli_p50,
+                "branch_clli_p50": baseline_clli_p50,
+                "reduction": [0.0] * len(baseline_clli_p50),
+            },
+            "branch_assets": {
+                nid: {
+                    "name": d.name,
+                    "p50_fail_time_h": d.p50_fail_time_h,
+                    "dominant_cause": d.dominant_cause,
+                }
+                for nid, d in baseline_data["dist"].items()
+            },
+        }
+
+    # Run counterfactual branch with exact same 20 seeds
+    num_branch_runs = 20
     branch_raw = sim_engine.run_simulation(
         track=scenario.track,
-        num_runs=20,
+        num_runs=num_branch_runs,
         time_horizon_h=36.0,
         dt_h=1.0,
         random_seed=42,
@@ -197,12 +231,22 @@ def run_whatif_branch(scenario_id: str, req: WhatIfRequest) -> Dict[str, Any]:
     )
     branch_dist, branch_clli, branch_metrics = SimulationAggregator.aggregate(branch_raw, graph_manager)
 
-    # Calculate delta CLLI
-    baseline_clli_p50 = [pt[2] for pt in baseline_data["clli"]]
+    # Compute baseline reference on the identical 20 seeds for variance reduction
+    base_raw_sub = {
+        "time_steps": baseline_data["raw"]["time_steps"],
+        "first_fails": {k: v[:num_branch_runs] for k, v in baseline_data["raw"]["first_fails"].items()},
+        "causes": {k: v[:num_branch_runs] for k, v in baseline_data["raw"]["causes"].items()},
+        "timelines": {k: v[:num_branch_runs] for k, v in baseline_data["raw"]["timelines"].items()},
+        "clli_all_runs": baseline_data["raw"]["clli_all_runs"][:num_branch_runs],
+        "causal_chains": baseline_data["raw"]["causal_chains"],
+    }
+    _, base_sub_clli, _ = SimulationAggregator.aggregate(base_raw_sub, graph_manager)
+
+    base_p50_sub = [pt[2] for pt in base_sub_clli]
     branch_clli_p50 = [pt[2] for pt in branch_clli]
     pointwise_reduction = [
         round(max(b - br, 0.0), 2)
-        for b, br in zip(baseline_clli_p50, branch_clli_p50)
+        for b, br in zip(base_p50_sub, branch_clli_p50)
     ]
     total_saved_points = round(sum(pointwise_reduction), 1)
 
@@ -215,7 +259,7 @@ def run_whatif_branch(scenario_id: str, req: WhatIfRequest) -> Dict[str, Any]:
         "total_lifeline_points_saved": total_saved_points,
         "clli_comparison": {
             "time_steps": baseline_data["raw"]["time_steps"],
-            "baseline_clli_p50": baseline_clli_p50,
+            "baseline_clli_p50": base_p50_sub,
             "branch_clli_p50": branch_clli_p50,
             "reduction": pointwise_reduction,
         },
@@ -268,15 +312,30 @@ def get_crisis_council(scenario_id: str) -> Dict[str, Any]:
     return result
 
 
+class RedTeamRequest(BaseModel):
+    action_ids: Optional[List[str]] = None
+
+
 @app.post("/api/scenario/{scenario_id}/redteam")
-def run_redteam_test(scenario_id: str) -> Dict[str, Any]:
+def run_redteam_test(
+    scenario_id: str,
+    req: Optional[RedTeamRequest] = Body(default=None),
+) -> Dict[str, Any]:
     """Red Team Adversarial Stress Test (F3)."""
     data = ensure_scenario_simulated(scenario_id)
     redteam_scenario = scenarios_dict.get("red_team_storm") or scenarios_dict[scenario_id]
-    result = wow_engine.run_red_team_stress_test(
-        redteam_scenario.track, data["ranked_actions"][:3], num_mc_runs=25
-    )
-    return result
+
+    if req and req.action_ids is not None:
+        custom_actions = [a for a in data["ranked_actions"] if a.id in req.action_ids]
+        return wow_engine.run_red_team_stress_test(
+            redteam_scenario.track, custom_actions, num_mc_runs=20
+        )
+
+    if "redteam" not in data:
+        data["redteam"] = wow_engine.run_red_team_stress_test(
+            redteam_scenario.track, data["ranked_actions"][:3], num_mc_runs=20
+        )
+    return data["redteam"]
 
 
 # Mount web directory if it exists

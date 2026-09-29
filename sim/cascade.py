@@ -66,6 +66,9 @@ class SingleSimulationRun:
                 self.params[target_id]["flood_threshold"] = self.params[target_id].get("flood_threshold", 0.3) + 0.35
                 self.params[target_id]["debris_wind_threshold"] = 50.0  # Cleared by staged teams
 
+            if "structural_hardening" in action.params:
+                self.params[target_id]["wind_threshold"] = self.params[target_id].get("wind_threshold", 55.0) + action.params["structural_hardening"]
+
     def _initialize_states(self) -> None:
         for node in self.gm.infra_graph.nodes:
             self.node_states[node.id] = NodeState.OPERATING
@@ -335,7 +338,7 @@ class MonteCarloCascadeSimulator:
                 p["flood_threshold"] = 1.5
 
             elif n.type == NodeType.HOSPITAL:
-                p["wind_threshold"] = float(rng.normal(attrs.get("wind_fail_threshold_ms", 52.0), 4.0))
+                p["wind_threshold"] = float(rng.normal(attrs.get("wind_fail_threshold_ms", 74.0), 3.0))
                 p["flood_threshold"] = float(rng.normal(attrs.get("flood_critical_depth_m", 0.45), 0.06))
                 base_fuel = float(attrs.get("fuel_hours", 12.0))
                 p["fuel_hours"] = float(np.clip(rng.normal(base_fuel, 2.5), 4.0, 36.0))

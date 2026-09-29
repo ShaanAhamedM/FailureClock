@@ -257,6 +257,14 @@ async function loadScenario(scenarioId) {
   STATE.redteamData = null;
   STATE.whatifData = null;
   STATE.doomsdayBoard = [];
+  STATE.showBranchOnMap = false;
+  const chkMap = document.getElementById("chkShowBranchOnMap");
+  if (chkMap) chkMap.checked = false;
+
+  deselectActiveMarker();
+  if (STATE.currentDrawerPane === "detail") {
+    switchDrawerPane(STATE.previousDrawerPane || "actions");
+  }
 
   try {
     const [assetsRes, graphRes, actionsRes, councilRes, keystonesRes, doomsdayRes] = await Promise.all([
@@ -1425,6 +1433,21 @@ function renderCouncil() {
         ${citationHtml}
       `;
       chatContainer.appendChild(div);
+    });
+  }
+
+  const dissentContainer = document.getElementById("councilDissentContainer");
+  if (dissentContainer && STATE.councilData.dissent_log) {
+    dissentContainer.innerHTML = "";
+    STATE.councilData.dissent_log.forEach((item) => {
+      const card = document.createElement("div");
+      card.className = "dissent-card";
+      card.innerHTML = `
+        <div class="dissent-stakeholder">Contested by: <b>${item.stakeholder}</b></div>
+        <div class="dissent-conflict"><span class="dissent-label">Disputed Request:</span> ${item.conflict}</div>
+        <div class="dissent-resolution"><span class="dissent-label">Collector Decision:</span> ${item.resolution}</div>
+      `;
+      dissentContainer.appendChild(card);
     });
   }
 }

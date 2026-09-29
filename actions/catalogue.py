@@ -21,7 +21,7 @@ def generate_candidate_actions(gm: DependencyGraphManager) -> List[InterventionA
             benefit_summary="Prevents complete ICU/dialysis power loss during landfall window.",
             resources_needed="1 Fuel Bowser (2,000 L), 2 Civil Defense Escorts",
             route_asset_ids=["RD-PURI-TOWN-LINK"],
-            params={"added_fuel_hours": 18.0},
+            params={"added_fuel_hours": 18.0, "structural_hardening": 8.0},
         ),
 
         # Action 2: Mobile generator for Grand Road telecom tower

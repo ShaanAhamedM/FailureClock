@@ -193,11 +193,14 @@ class WowLayerEngine:
         health_nodes = [n for n in self.gm.infra_graph.nodes if n.type == NodeType.HOSPITAL]
 
         survived_count = 0
+        total_survival_pct = 0.0
         facility_status = []
         for h in health_nodes:
             fails = np.array(first_fails[h.id])
             fail_pct = float(np.mean(fails <= 12.0)) * 100.0  # Failed by landfall + 12h
-            is_robust = fail_pct < 40.0
+            surv_pct = max(0.0, 100.0 - fail_pct)
+            total_survival_pct += surv_pct
+            is_robust = fail_pct < 60.0
             if is_robust:
                 survived_count += 1
             facility_status.append({
@@ -208,7 +211,7 @@ class WowLayerEngine:
                 "robust": is_robust,
             })
 
-        robustness_score = round((survived_count / max(len(health_nodes), 1)) * 100.0, 1)
+        robustness_score = round(total_survival_pct / max(len(health_nodes), 1), 1)
 
         return {
             "plan_robustness_score": robustness_score,

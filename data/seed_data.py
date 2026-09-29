@@ -185,7 +185,7 @@ def get_puri_infrastructure_graph() -> InfrastructureGraph:
                 "fuel_burn_rate_lph": 30.0,
                 "tank_capacity_l": 800.0,
                 "flood_critical_depth_m": 0.50,
-                "wind_fail_threshold_ms": 55.0,
+                "wind_fail_threshold_ms": 78.0,
             },
         ),
         AssetNode(
@@ -206,7 +206,7 @@ def get_puri_infrastructure_graph() -> InfrastructureGraph:
                 "fuel_burn_rate_lph": 18.0,
                 "tank_capacity_l": 400.0,
                 "flood_critical_depth_m": 0.40,
-                "wind_fail_threshold_ms": 50.0,
+                "wind_fail_threshold_ms": 72.0,
             },
         ),
         AssetNode(
@@ -227,7 +227,7 @@ def get_puri_infrastructure_graph() -> InfrastructureGraph:
                 "fuel_burn_rate_lph": 12.0,
                 "tank_capacity_l": 250.0,
                 "flood_critical_depth_m": 0.35,
-                "wind_fail_threshold_ms": 48.0,
+                "wind_fail_threshold_ms": 70.0,
             },
         ),
         AssetNode(
@@ -248,7 +248,7 @@ def get_puri_infrastructure_graph() -> InfrastructureGraph:
                 "fuel_burn_rate_lph": 15.0,
                 "tank_capacity_l": 350.0,
                 "flood_critical_depth_m": 0.45,
-                "wind_fail_threshold_ms": 52.0,
+                "wind_fail_threshold_ms": 74.0,
             },
         ),
         AssetNode(
@@ -269,7 +269,7 @@ def get_puri_infrastructure_graph() -> InfrastructureGraph:
                 "fuel_burn_rate_lph": 14.0,
                 "tank_capacity_l": 300.0,
                 "flood_critical_depth_m": 0.35,
-                "wind_fail_threshold_ms": 50.0,
+                "wind_fail_threshold_ms": 72.0,
             },
         ),
 
