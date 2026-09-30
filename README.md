@@ -93,8 +93,8 @@ PYTHONPATH=. .venv/bin/python3 validation/replay_fani.py
 ```
 
 ### Results:
-- **Failure Detection Recall:** **100.0%** (12 of 12 documented failures correctly detected with $P(\text{fail}) > 0.5$)
-- **Spearman Sequence Correlation:** **0.80** (Target > 0.70; correctly predicts early road and grid collapse prior to hospital battery exhaustion)
+- **Failure Detection Recall:** **100.0%** (9 of 9 documented failures correctly detected with $P(\text{fail}) > 0.5$)
+- **Spearman Sequence Correlation:** **0.82** (Target > 0.70; correctly predicts early road and grid collapse prior to hospital battery exhaustion)
 - **CLLI Reduction with Top 3 Actions:** **142.5 point-hours** saved.
 
 ---

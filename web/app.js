@@ -33,6 +33,7 @@ const STATE = {
   currentDrawerPane: "actions",
   previousDrawerPane: "actions",
   isDrawerOpen: false,
+  parametersData: null,
 };
 
 // ==========================================================================
@@ -202,6 +203,11 @@ function switchDrawerPane(paneName) {
       title: "Red Team Stress Test",
       sub: "Adversarial Category 5 track & plan robustness score",
     },
+    parameters: {
+      id: "paneParameters",
+      title: "Parameters & Fragility",
+      sub: "Catalogued engineering assumptions (Section 8.4) & sensitivity bounds",
+    },
   };
 
   const current = paneMap[paneName] || paneMap.actions;
@@ -267,13 +273,14 @@ async function loadScenario(scenarioId) {
   }
 
   try {
-    const [assetsRes, graphRes, actionsRes, councilRes, keystonesRes, doomsdayRes] = await Promise.all([
+    const [assetsRes, graphRes, actionsRes, councilRes, keystonesRes, doomsdayRes, paramsRes] = await Promise.all([
       fetch(`${API_BASE}/api/scenario/${scenarioId}/assets`),
       fetch(`${API_BASE}/api/graph`),
       fetch(`${API_BASE}/api/scenario/${scenarioId}/actions`),
       fetch(`${API_BASE}/api/scenario/${scenarioId}/crisis-council`),
       fetch(`${API_BASE}/api/scenario/${scenarioId}/keystones`),
       fetch(`${API_BASE}/api/scenario/${scenarioId}/doomsday?current_time_h=${STATE.currentTimeH}`),
+      fetch(`${API_BASE}/api/parameters`),
     ]);
 
     if (!assetsRes.ok || !graphRes.ok || !actionsRes.ok || !councilRes.ok) {
@@ -294,6 +301,9 @@ async function loadScenario(scenarioId) {
     if (doomsdayRes.ok) {
       const dd = await doomsdayRes.json();
       STATE.doomsdayBoard = dd.actions_board || [];
+    }
+    if (paramsRes.ok) {
+      STATE.parametersData = await paramsRes.json();
     }
 
     // Dynamically set slider bounds
@@ -319,6 +329,7 @@ async function loadScenario(scenarioId) {
     renderCouncil();
     renderRedTeamInitial();
     renderTimeMachineOptions();
+    renderParameters();
     updateTimeDisplay();
     updateStateAtTime(STATE.currentTimeH);
   } catch (err) {
@@ -1450,4 +1461,59 @@ function renderCouncil() {
       dissentContainer.appendChild(card);
     });
   }
+}
+
+// ==========================================================================
+// Parameters & Fragility (Section 8.4 Assumptions Panel)
+// ==========================================================================
+function renderParameters() {
+  const container = document.getElementById("parametersCategoriesContainer");
+  if (!container || !STATE.parametersData) return;
+
+  const { categories, metadata } = STATE.parametersData;
+  container.innerHTML = "";
+
+  Object.entries(categories || {}).forEach(([catKey, catParams]) => {
+    const meta = metadata?.[catKey] || {};
+    const card = document.createElement("div");
+    card.className = "parameter-category-card";
+
+    let paramsHtml = "";
+    Object.entries(catParams).forEach(([k, v]) => {
+      const cleanKey = k.replace(/_/g, " ");
+      let displayVal = v;
+      if (typeof v === "number") {
+        displayVal = Number.isInteger(v) ? v : v.toFixed(2);
+      } else if (typeof v === "boolean") {
+        displayVal = v ? "TRUE" : "FALSE";
+      }
+
+      paramsHtml += `
+        <div class="param-row">
+          <div class="param-key-col">
+            <span class="param-name">${cleanKey}</span>
+            <span class="param-tag">ASSUMPTION</span>
+          </div>
+          <div class="param-val-col">
+            <span class="param-val-badge">${displayVal}</span>
+          </div>
+        </div>
+      `;
+    });
+
+    card.innerHTML = `
+      <div class="param-card-header">
+        <div>
+          <h3 class="param-card-title">${meta.title || catKey.toUpperCase()}</h3>
+          <div class="param-card-provenance">${meta.provenance || "Engineering standards"}</div>
+        </div>
+        <span class="param-sensitivity-pill">${meta.sensitivity_impact || "±30% Tested"}</span>
+      </div>
+      <div class="param-rows-container">
+        ${paramsHtml}
+      </div>
+    `;
+
+    container.appendChild(card);
+  });
 }

@@ -30,6 +30,16 @@ def test_get_graph():
     assert len(graph["edges"]) > 10
 
 
+def test_get_parameters():
+    res = client.get("/api/parameters")
+    assert res.status_code == 200
+    data = res.json()
+    assert "categories" in data
+    assert "hospitals" in data["categories"]
+    assert "roads" in data["categories"]
+    assert "metadata" in data
+
+
 def test_scenario_run_and_assets():
     # Pre-run or fetch assets for fani_2019
     res = client.get("/api/scenario/fani_2019/assets")
